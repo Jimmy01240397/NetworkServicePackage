@@ -138,3 +138,18 @@ L:\Data\C Studio\My Project\MyServerNew\Server\obj\Debug\Server.exe
 L:\Data\C Studio\My Project\MyServerNew\Server\obj\Debug\Server.pdb
 L:\Data\C Studio\My Project\MyServerNew\Server\obj\Debug\Server.ServerConsole.resources
 L:\Data\C Studio\My Project\MyServerNew\Server\obj\Debug\Server.Name.resources
+C:\Users\jimmy\Desktop\MyServer\Server\bin\Debug\Server.exe.config
+C:\Users\jimmy\Desktop\MyServer\Server\bin\Debug\Server.exe
+C:\Users\jimmy\Desktop\MyServer\Server\bin\Debug\Server.pdb
+C:\Users\jimmy\Desktop\MyServer\Server\bin\Debug\UnityNetwork.dll
+C:\Users\jimmy\Desktop\MyServer\Server\bin\Debug\UnityNetwork.pdb
+C:\Users\jimmy\Desktop\MyServer\Server\obj\Debug\Server.csprojAssemblyReference.cache
+C:\Users\jimmy\Desktop\MyServer\Server\obj\Debug\Server.Form1.resources
+C:\Users\jimmy\Desktop\MyServer\Server\obj\Debug\Server.Name.resources
+C:\Users\jimmy\Desktop\MyServer\Server\obj\Debug\Server.Properties.Resources.resources
+C:\Users\jimmy\Desktop\MyServer\Server\obj\Debug\Server.ServerConsole.resources
+C:\Users\jimmy\Desktop\MyServer\Server\obj\Debug\Server.csproj.GenerateResource.cache
+C:\Users\jimmy\Desktop\MyServer\Server\obj\Debug\Server.csproj.CoreCompileInputs.cache
+C:\Users\jimmy\Desktop\MyServer\Server\obj\Debug\Server.csproj.CopyComplete
+C:\Users\jimmy\Desktop\MyServer\Server\obj\Debug\Server.exe
+C:\Users\jimmy\Desktop\MyServer\Server\obj\Debug\Server.pdb

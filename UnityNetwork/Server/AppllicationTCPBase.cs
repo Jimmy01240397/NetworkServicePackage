@@ -432,9 +432,9 @@ namespace UnityNetwork.Server
         }
         private string GetIPv4List()
         {
-            IPAddress[] ipv4Addresses;
-            ipv4Addresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
-            return ipv4Addresses[0].ToString();
+            //IPAddress[] ipv4Addresses;
+            //ipv4Addresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
+            return "0.0.0.0"; //ipv4Addresses[0].ToString();
         }
         public void Finding(object _find)
         {

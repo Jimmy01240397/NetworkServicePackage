@@ -35,12 +35,10 @@ namespace Server
                 file.Read(bytes, 0, bytes.Length);
                 if (bytes.Length != 0)
                 {
-                    Response response = new Response();
                     List<string> list = null;
                     try
                     {
-                        response.ByteToAll2(bytes, 0, out int cont, "");
-                        list = new List<string>((string[])response.Parameters[0]);
+                        list = new List<string>((string[])SerializationData.ToObject(bytes));
                     }
                     catch (Exception)
                     {

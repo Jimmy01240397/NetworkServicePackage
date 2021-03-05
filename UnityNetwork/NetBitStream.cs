@@ -140,7 +140,7 @@ namespace UnityNetwork
         {
             stream = new MemoryStream();
             writer = new BinaryWriter(stream);
-            byte[] bs = Response.Lock(response, key, _Lock);
+            byte[] bs = SerializationData.Lock(response, key, _Lock);
             writer.Write(_bytes);
             writer.Write(bs);
             writer.Close();

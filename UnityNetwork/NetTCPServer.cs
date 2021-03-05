@@ -78,38 +78,20 @@ namespace UnityNetwork
         {
             _port = listenPort;
 
-
-            int i = 0;
             a = "";
-            foreach (IPAddress address in Dns.GetHostEntry(ip).AddressList)
+            try
             {
-                try
-                {
 
-                    IPEndPoint ipe = new IPEndPoint(IPAddress.Any, _port);
-                    a += ipe.Address + ":" + ipe.Port + " ";
-                    _listener = new TcpListener(ipe);
-                    _listener.Start(5000);
+                IPEndPoint ipe = new IPEndPoint(IPAddress.Any, _port);
+                _listener = new TcpListener(ipe);
+                _listener.Start(5000);
 
-                    _listener.BeginAcceptTcpClient(new System.AsyncCallback(ListenTcpClient), _listener);
-
-                    ip = Dns.GetHostAddresses(ip)[0].ToString() + ":" + _port;
-                    i = 1;
-                    break;
-
-                }
-                catch (System.Exception)
-                {
-
-                }
+                _listener.BeginAcceptTcpClient(new System.AsyncCallback(ListenTcpClient), _listener);
+                a = ipe.Address + ":" + ipe.Port + " ";
             }
-            if (i == 1)
+            catch (System.Exception e)
             {
-                a = ip;
-            }
-            else
-            {
-                a += "無法建立伺服器";
+                a += e.ToString() + "  無法建立伺服器";
                 return false;
             }
             return true;
