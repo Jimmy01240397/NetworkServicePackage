@@ -1,0 +1,103 @@
+無法開啟 MyServer1 服務 (於電腦 '.' 上)。
+2019/7/1  下午 09:00:17 無法開啟 MyServer1 服務 (於電腦 '.' 上)。
+2019/7/1  下午 11:45:23 系統找不到指定的檔案。
+2019/7/1  下午 11:45:45 錯誤：中止操作被 WSACancelBlockingCall 呼叫打斷。
+2019/7/1  下午 11:45:45 錯誤：並未將物件參考設定為物件的執行個體
+2019/9/29  下午 10:38:50 無法開啟 1 服務 (於電腦 '.' 上)。
+2019/9/29  下午 11:34:39 無法開啟 MyServer1 服務 (於電腦 '.' 上)。
+2019/9/29  下午 11:43:33 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/29  下午 11:46:29 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/29  下午 11:46:48 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 12:04:50 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 12:08:52 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 12:11:25 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 12:19:11 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 12:25:15 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 09:12:16 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 09:19:39 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 09:20:07 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 09:20:30 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 09:25:25 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 09:27:35 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 09:30:08 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 09:30:16 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 09:31:11 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 09:33:49 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 11:01:53 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 11:03:51 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 11:04:24 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  上午 11:07:01 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  下午 04:21:41 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72
+2019/9/30  下午 05:26:36 System.Net.Sockets.SocketException (0x80004005): 中止操作被 WSACancelBlockingCall 呼叫打斷。
+   於 System.Net.Sockets.Socket.ReceiveFrom(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint& remoteEP)
+   於 System.Net.Sockets.UdpClient.Receive(IPEndPoint& remoteEP)
+   於 Server.Form1.Showwing() 於 L:\Data\C Studio\My Project\MyServerNew\Server\Form1.cs: 行 72

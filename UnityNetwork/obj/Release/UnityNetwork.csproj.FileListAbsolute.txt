@@ -1,0 +1,9 @@
+D:\BoostProject\UnityNetwork\UnityNetwork\bin\Release\UnityNetwork.dll
+D:\BoostProject\UnityNetwork\UnityNetwork\bin\Release\UnityNetwork.pdb
+D:\BoostProject\UnityNetwork\UnityNetwork\obj\Release\ResolveAssemblyReference.cache
+D:\BoostProject\UnityNetwork\UnityNetwork\obj\Release\UnityNetwork.dll
+D:\BoostProject\UnityNetwork\UnityNetwork\obj\Release\UnityNetwork.pdb
+F:\資料\C語言編輯器\新文件\MyServer\UnityNetwork\bin\Release\UnityNetwork.dll
+F:\資料\C語言編輯器\新文件\MyServer\UnityNetwork\bin\Release\UnityNetwork.pdb
+F:\資料\C語言編輯器\新文件\MyServer\UnityNetwork\obj\Release\UnityNetwork.dll
+F:\資料\C語言編輯器\新文件\MyServer\UnityNetwork\obj\Release\UnityNetwork.pdb

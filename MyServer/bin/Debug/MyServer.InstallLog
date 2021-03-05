@@ -1,0 +1,991 @@
+﻿正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在解除安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+警告: 來源 MyServer1 未於本機電腦上註冊。
+已從系統中移除服務 MyServer1...
+在 System.ServiceProcess.ServiceInstaller 安裝程式的解除安裝中發生例外狀況。
+System.ComponentModel.Win32Exception: 指定的服務並不是已安裝的服務。
+解除安裝時發生例外狀況。將略過此例外狀況，而解除安裝將會繼續。然而，解除安裝完成之後，可能無法完全解除安裝應用程式。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在解除安裝組件 'H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在解除安裝組件 'H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+嘗試停止服務 MyServer1。
+正在安裝組件 'H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在安裝組件 'M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在安裝組件 'M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在解除安裝組件 'M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = M:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'J:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = J:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = J:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'J:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = J:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = J:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'G:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = G:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = G:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'G:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = G:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = G:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = K:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = E:\資料\C語言編輯器\新文件\MyServer\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+嘗試停止服務 MyServer1。
+正在安裝組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = F:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在解除安裝組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
+正在安裝組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+已經成功安裝服務 MyServer1。
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在認可組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在安裝服務 MyServer1...
+正在記錄檔 Application 中建立 EventLog 來源 MyServer1...
+正在復原組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正將來源 MyServer1 的事件記錄檔恢復成之前的狀態。
+正在解除安裝組件 'H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe'。
+受影響的參數為:
+   logtoconsole = 
+   assemblypath = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.exe
+   i = 
+   logfile = H:\資料\C語言編輯器\新文件\MyServerNew\MyServer\bin\Debug\MyServer.InstallLog
+正在移除 EventLog 來源 MyServer1。
+已從系統中移除服務 MyServer1...
+已經成功從系統移除服務 MyServer1。
