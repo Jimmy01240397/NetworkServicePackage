@@ -11,7 +11,7 @@ using UnityNetwork;
 
 namespace UnityNetwork.Server
 {
-    public class AppllicationUDPBase : NetworkManager
+    public class AppllicationUDPBase
     {
         // 邏輯執行緒
         Thread NetThread;
@@ -23,25 +23,86 @@ namespace UnityNetwork.Server
         Dictionary<int, bool> AuxiliaryServerListLink = new Dictionary<int, bool>();
 
         // 用戶端列表
-        public Dictionary<PeerUDPBase, bool> Link;
-        public List<PeerUDPBase> NewLink;
+        private Dictionary<PeerUDPBase, bool> Link;
+        private List<PeerUDPBase> NewLink;
         bool run;
         bool Clean;
         public delegate void Message(byte t, string i);
         public event Message GetMessage;
 
-        public void Start()
+        private bool enableP2P = false;
+
+        public bool EnableP2P
+        {
+            get
+            {
+                return enableP2P;
+            }
+            set
+            {
+                enableP2P = value;
+                if (_server != null)
+                {
+                    _server.enableP2P = enableP2P;
+                }
+            }
+        }
+
+        public System.Collections.ArrayList SocketList
+        {
+            get
+            {
+                return networkManager._socketList;
+            }
+        }
+        public Dictionary<string, object> ToPeerUDPIP
+        {
+            get
+            {
+                return networkManager.ToPeerUDPIP;
+            }
+        }
+        public Dictionary<IPEndPoint, object> ToPeerUDP
+        {
+            get
+            {
+                return networkManager.ToPeerUDP;
+            }
+        }
+        public int PacketSize
+        {
+            get
+            {
+                return networkManager.PacketSize;
+            }
+        }
+        public int PacketCount
+        {
+            get
+            {
+                return networkManager.PacketCount;
+            }
+            set
+            {
+                networkManager.PacketCount = value;
+            }
+        }
+
+        private NetworkManager networkManager;
+
+        public void Start(int maxConnections = -1)
         {
             run = true;
             Clean = false;
             // 創建一個列表保存每個用戶端的Socket
-            _socketList = new System.Collections.ArrayList();
-            ToPeerUDP = new Dictionary<IPEndPoint, object>();
-            ToPeerUDPIP = new Dictionary<string, object>();
+            networkManager = new NetworkManager();
+
             Link = new Dictionary<PeerUDPBase, bool>();
             NewLink = new List<PeerUDPBase>();
 
-            _server = new NetUDPServer(this, -1);
+
+            _server = new NetUDPServer(networkManager, maxConnections);
+            _server.enableP2P = enableP2P;
             _server.GetMessage += _server_GetMessage;
 
             try
@@ -76,86 +137,32 @@ namespace UnityNetwork.Server
                 _server_GetMessage(e.ToString() + "From Start");
             }
         }
-        public void Start(int maxConnections)
-        {
-            run = true;
-            Clean = false;
-            // 創建一個列表保存每個用戶端的Socket
-            _socketList = new System.Collections.ArrayList();
-            ToPeerUDPIP = new Dictionary<string, object>();
-            ToPeerUDP = new Dictionary<IPEndPoint, object>();
-            Link = new Dictionary<PeerUDPBase, bool>();
-            NewLink = new List<PeerUDPBase>();
-
-
-            _server = new NetUDPServer(this, maxConnections);
-            _server.GetMessage += _server_GetMessage;
-
-            try
-            {
-                // 為邏輯部分建立新的執行緒
-                NetThread = new Thread(new ThreadStart(Update));
-                NetThread.Start();
-                Thread checking = new Thread(new ThreadStart(check));
-                checking.Start();
-                Thread checking2 = new Thread(new ThreadStart(check2));
-                checking2.Start();
-                string w;
-                try
-                {
-                    if (_server.CreateUdpServer(GetIPv4List(), GetPort(), out w))
-                    {
-                        GetMessage?.Invoke(0, w);
-                    }
-                    else
-                    {
-                        GetMessage?.Invoke(4, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + " " + "錯誤：" + w);
-                    }
-                }
-                catch (Exception e)
-                {
-                    _server_GetMessage(e.ToString() + "From StartCreateUDpServer");
-                }
-                Setup();
-            }
-            catch (Exception e)
-            {
-                _server_GetMessage(e.ToString() + "From Start");
-            }
-        }
-        public virtual void Setup()
+        protected virtual void Setup()
         {
 
         }
 
-        public override void Update()
+        private void Update()
         {
             NetPacket packet = null;
             while (run)
             {
                 try
                 {
-                    if (_socketList.Count == 0 && NewLink.Count == 0 && Clean)
+                    if (networkManager._socketList.Count == 0 && NewLink.Count == 0 && Clean)
                     {
                         lock (Link)
                         {
                             Clean = false;
-                            CleanPacket();
-                            _socketList = null;
-                            ToPeerUDP = null;
-                            ToPeerUDPIP = null;
-                            Link = null;
-                            _socketList = new System.Collections.ArrayList();
-                            ToPeerUDPIP = new Dictionary<string, object>();
-                            ToPeerUDP = new Dictionary<IPEndPoint, object>();
-                            Link = new Dictionary<PeerUDPBase, bool>();
+                            networkManager.Clear();
+                            Link.Clear();
                             CleanUp();
                         }
                     }
 
                     SpinWait.SpinUntil(() => !run || this.PacketSize != 0);
 
-                    for (packet = GetPacket(); packet != null; packet = GetPacket())
+                    for (packet = networkManager.GetPacket(); packet != null; packet = networkManager.GetPacket())
                     {
                         try
                         {
@@ -238,7 +245,7 @@ namespace UnityNetwork.Server
 
                                                 _server.Send(stream1, packet._peerUDP);
 
-                                                _socketList.Add(ToPeerUDP[packet._peerUDP]);
+                                                networkManager._socketList.Add(ToPeerUDP[packet._peerUDP]);
                                                 NewLink.Remove((PeerUDPBase)ToPeerUDP[packet._peerUDP]);
                                             }
                                             else
@@ -259,6 +266,19 @@ namespace UnityNetwork.Server
                                             stream2.WriteResponse2(bb, "");
                                             stream2.EncodeHeader();
                                             _server.Send(stream2, packet._peerUDP);
+                                        }
+                                        break;
+                                    }
+                                case (ushort)MessageIdentifiers.ID.P2P_SERVER_CALL:
+                                    {
+                                        if (enableP2P)
+                                        {
+                                            if (networkManager.ToPeerUDPIP.TryGetValue(packet.response.Parameters[0].ToString(), out object peer))
+                                            {
+                                                _server_GetMessage(packet.response.Code + " " + packet.response.Parameters[0]);
+                                                packet.response.Parameters[0] = packet._peerUDP.ToString();
+                                                ((PeerUDPBase)peer).P2PTell(packet.response);
+                                            }
                                         }
                                         break;
                                     }
@@ -283,7 +303,7 @@ namespace UnityNetwork.Server
                 }
             }
         }
-        public virtual int GetPort()
+        protected virtual int GetPort()
         {
             return 10001;
         }
@@ -293,7 +313,7 @@ namespace UnityNetwork.Server
             ipv4Addresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
             return ipv4Addresses[0].ToString();
         }
-        public void Finding(object _find)
+        protected void Finding(object _find)
         {
             Find c = (Find)_find;
             try
@@ -305,6 +325,14 @@ namespace UnityNetwork.Server
                     {
                         case 1:
                             {
+                                if (c.packet._error == "")
+                                {
+                                    NetBitStream stream = new NetBitStream();
+                                    stream.BeginReadUDP2(c.packet);
+                                    stream.ReadResponse2("");
+                                    stream.EncodeHeader();
+                                    c.packet._error = stream.thing.DebugMessage;
+                                }
                                 GetMessage?.Invoke(2, a.socket.ToString() + "+" + c.packet._error);
                                 if (_server != null && a.socket != null)
                                 {
@@ -324,9 +352,9 @@ namespace UnityNetwork.Server
                                 {
                                     _server_GetMessage(a.socket.ToString() + " " + e.Message + "From OnDisconnect");
                                 }
-                                if (_socketList.Contains(a))
+                                if (networkManager._socketList.Contains(a))
                                 {
-                                    _socketList.Remove(a);
+                                    networkManager._socketList.Remove(a);
                                 }
                                 if (NewLink.Contains(a))
                                 {
@@ -346,9 +374,6 @@ namespace UnityNetwork.Server
                             {
                                 if (a.Key != "")
                                 {
-
-                                    NetBitStream stream = new NetBitStream();
-                                    stream.BeginReadUDP2(c.packet);
                                     try
                                     {
                                         a.OnOperationRequest(c.packet.response);
@@ -399,19 +424,19 @@ namespace UnityNetwork.Server
             }
         }
 
-        public void check()
+        protected void check()
         {
             try
             {
                 while (run)
                 {
-                    if (_socketList != null)
+                    if (networkManager._socketList != null)
                     {
-                        for (int i = 0; i < _socketList.Count; i++)
+                        for (int i = 0; i < networkManager._socketList.Count; i++)
                         {
-                            if (((PeerUDPBase)_socketList[i]) != null)
+                            if (((PeerUDPBase)networkManager._socketList[i]) != null)
                             {
-                                ((PeerUDPBase)_socketList[i]).check();
+                                ((PeerUDPBase)networkManager._socketList[i]).check();
                             }
                         }
                         Thread.Sleep(1000);
@@ -424,21 +449,21 @@ namespace UnityNetwork.Server
             }
         }
 
-        public void check2()
+        protected void check2()
         {
             try
             {
                 while (run)
                 {
-                    if (_socketList != null)
+                    if (networkManager._socketList != null)
                     {
-                        for (int i = 0; i < _socketList.Count; i++)
+                        for (int i = 0; i < networkManager._socketList.Count; i++)
                         {
                             lock (Link)
                             {
-                                if (Link.ContainsKey((PeerUDPBase)_socketList[i]))
+                                if (Link.ContainsKey((PeerUDPBase)networkManager._socketList[i]))
                                 {
-                                    Link[(PeerUDPBase)_socketList[i]] = false;
+                                    Link[(PeerUDPBase)networkManager._socketList[i]] = false;
                                 }
                             }
                         }
@@ -467,20 +492,20 @@ namespace UnityNetwork.Server
                         }
                         stopwatch.Stop();
                         stopwatch.Reset();
-                        for (int i = 0; i < _socketList.Count; i++)
+                        for (int i = 0; i < networkManager._socketList.Count; i++)
                         {
                             lock (Link)
                             {
-                                if (Link.ContainsKey((PeerUDPBase)_socketList[i]))
+                                if (Link.ContainsKey((PeerUDPBase)networkManager._socketList[i]))
                                 {
-                                    if (!Link[(PeerUDPBase)_socketList[i]])
+                                    if (!Link[(PeerUDPBase)networkManager._socketList[i]])
                                     {
-                                        _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應", ((PeerUDPBase)_socketList[i]).socket);
+                                        _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應", ((PeerUDPBase)networkManager._socketList[i]).socket);
                                     }
                                 }
                                 else
                                 {
-                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應", ((PeerUDPBase)_socketList[i]).socket);
+                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應", ((PeerUDPBase)networkManager._socketList[i]).socket);
                                 }
                             }
                         }
@@ -526,17 +551,17 @@ namespace UnityNetwork.Server
         }
 
 
-        public virtual PeerUDPBase AddPeerBase(IPEndPoint _peer, NetUDPServer server)
+        protected virtual PeerUDPBase AddPeerBase(IPEndPoint _peer, NetUDPServer server)
         {
             return new PeerUDPBase(_peer, server);
         }
 
-        public virtual void TearDown()
+        protected virtual void TearDown()
         {
 
         }
 
-        public virtual void CleanUp()
+        protected virtual void CleanUp()
         {
 
         }
@@ -548,27 +573,23 @@ namespace UnityNetwork.Server
 
         public void Disconnect()
         {
-            for (int i = 0; i < _socketList.Count; i++)
+            for (int i = 0; i < networkManager._socketList.Count; i++)
             {
-                ((PeerUDPBase)_socketList[i]).OffLine();
+                ((PeerUDPBase)networkManager._socketList[i]).OffLine();
             }
             Thread a = new Thread(new ThreadStart(exit));
             a.Start();
         }
-        public void exit()
+        protected void exit()
         {
             Thread.Sleep(4000);
             TearDown();
             _server.close();
             _server.GetMessage -= _server_GetMessage;
-            _socketList.Clear();
-            ToPeerUDP.Clear();
-            ToPeerUDPIP.Clear();
+            networkManager.Clear();
             Link.Clear();
             AuxiliaryServerList.Clear();
-            _socketList = null;
-            ToPeerUDPIP = null;
-            ToPeerUDP = null;
+            networkManager = null;
             Link = null;
             run = false;
             MessageTell.StopRead();

@@ -3,7 +3,7 @@ using System.Text;
 
 namespace UnityNetwork
 {
-    static public class MessageIdentifiers
+    public class MessageIdentifiers
     {
         public enum ID
         {
@@ -38,6 +38,18 @@ namespace UnityNetwork
 
             // 聊天专用ID 发送非重要事件消息
             NOT_IMPORT_ID_CHAT2,
+
+            P2P_SERVER_CALL,
+
+            P2P_CONNECTION,
+
+            P2P_LOST,
+
+            P2P_CHECKING,
+
+            P2P_ID_CHAT,
+
+            END
         };
     }
 }

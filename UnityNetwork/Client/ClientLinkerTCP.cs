@@ -1,29 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
-using UnityNetwork;
 
 namespace UnityNetwork.Client
 {
-    public class ClientLinkerTCP : NetworkManager
+    public class ClientLinkerTCP
     {
         NetTCPClient client;
         ClientListenTCP listener;
+
+
         bool getcheck = true;
         private int cantlink = 0;
 
+        private NetworkManager networkManager;
+
+        string _key = "";
+
+        public string key
+        {
+            get
+            {
+                return _key;
+            }
+            private set
+            {
+                _key = value;
+                client.key = value;
+            }
+        }
+
         object locker = new object();
 
-        public List<string> SendKey = new List<string>();
-        public Dictionary<string, NetBitStream> Sendthing = new Dictionary<string, NetBitStream>();
+        private List<string> SendKey = new List<string>();
+        private Dictionary<string, NetBitStream> Sendthing = new Dictionary<string, NetBitStream>();
 
-        public string key { get; private set; } = "";
-        public ClientLinkerTCP(ClientListenTCP a) : base()
+        public ClientLinkerTCP(ClientListenTCP a)
         {
             listener = (ClientListenTCP)a;
         }
+
+
         public bool Connect(string ip, int port)
         {
             if (client != null)
@@ -32,8 +52,10 @@ namespace UnityNetwork.Client
                 client.GetMessage -= OnGetMessage;
             }
             client = null;
-            while (!getcheck) { }
-            client = new NetTCPClient(this);
+            networkManager = null;
+            SpinWait.SpinUntil(() => getcheck);
+            networkManager = new NetworkManager();
+            client = new NetTCPClient(networkManager);
             client.Cheak += OnCheck;
             client.GetMessage += OnGetMessage;
             bool b = client.Connect(ip, port);
@@ -65,6 +87,20 @@ namespace UnityNetwork.Client
 
         public void Disconnect()
         {
+            try
+            {
+                NetBitStream stream = new NetBitStream();
+                Response b = new Response();
+                b.DebugMessage = "主動斷線";
+                stream.BeginWrite((ushort)MessageIdentifiers.ID.CONNECTION_LOST);
+                stream.WriteResponse2(b, "");
+                stream.EncodeHeader();
+                client.Send(stream);
+            }
+            catch (Exception)
+            {
+
+            }
             if (listener != null)
             {
                 listener.DebugReturn("Disconnect");
@@ -73,6 +109,7 @@ namespace UnityNetwork.Client
             client.GetMessage -= OnGetMessage;
             client.Disconnect(0);
             client = null;
+            networkManager = null;
             listener = null;
             key = "";
         }
@@ -141,7 +178,7 @@ namespace UnityNetwork.Client
             });
         }
 
-        public void NatImportask(byte Code, Dictionary<byte, Object> Parameter, bool _Lock = true)
+        public void NotImportask(byte Code, Dictionary<byte, Object> Parameter, bool _Lock = true)
         {
             ThreadPool.QueueUserWorkItem((aa) =>
             {
@@ -173,7 +210,7 @@ namespace UnityNetwork.Client
             });
         }
 
-        public void CheckKey()
+        private void CheckKey()
         {
             if (key != "")
             {
@@ -193,7 +230,7 @@ namespace UnityNetwork.Client
             }
         }
 
-        public void check()
+        private void check()
         {
             try
             {
@@ -208,7 +245,6 @@ namespace UnityNetwork.Client
                 if (client != null && listener != null)
                 {
                     cantlink++;
-                    listener.DebugReturn(e.Message + " cantlink:" + cantlink);
                     if (cantlink > 50)
                     {
                         client.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message);
@@ -217,10 +253,10 @@ namespace UnityNetwork.Client
             }
         }
 
-        public override void Update()
+        public void Update()
         {
             NetPacket packet = null;
-            for (packet = GetPacket(); packet != null; packet = GetPacket())
+            for (packet = networkManager.GetPacket(); packet != null; packet = networkManager.GetPacket())
             {
                 try
                 {
@@ -345,7 +381,7 @@ namespace UnityNetwork.Client
             }// end fore
         }
 
-        public void Doing(object thing)
+        private void Doing(object thing)
         {
             Response response = (Response)thing;
             if (listener != null)

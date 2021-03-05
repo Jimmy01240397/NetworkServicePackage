@@ -11,8 +11,8 @@ namespace UnityNetwork.Server
 {
     public class PeerUDPBase
     {
-        public IPEndPoint _socket;
-        public NetUDPServer a;
+        private IPEndPoint _socket;
+        private NetUDPServer a;
         public string Key { get; private set; } = "";
         private int cantlink = 0;
         public readonly object Lock = new object();
@@ -58,6 +58,28 @@ namespace UnityNetwork.Server
                 stream2.WriteResponse2(b, "");
                 stream2.EncodeHeader();
                 a.Send(stream2, _socket);
+            }
+        }
+
+        public void ErrorOffLine(string Message)
+        {
+            if (a != null && _socket != null)
+            {
+                a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, Message, _socket);
+                try
+                {
+                    NetBitStream stream2 = new NetBitStream();
+                    Response b = new Response();
+                    b.DebugMessage = "伺服器端主動斷線";
+                    stream2.BeginWrite((ushort)MessageIdentifiers.ID.CONNECTION_LOST);
+                    stream2.WriteResponse2(b, "");
+                    stream2.EncodeHeader();
+                    a.Send(stream2, _socket);
+                }
+                catch(Exception)
+                {
+
+                }
             }
         }
 
@@ -147,6 +169,65 @@ namespace UnityNetwork.Server
                             Response b = new Response(Code, Parameter);
                             stream.BeginWrite((ushort)MessageIdentifiers.ID.ID_CHAT2);
                             stream.WriteResponse2(b, Key, _Lock);
+                            stream.EncodeHeader();
+                            lock (SendKey)
+                            {
+                                Sendthing.Add(sendkey, stream);
+                                while (SendKey.Count != 0)
+                                {
+                                    if (Sendthing.ContainsKey(SendKey[0]))
+                                    {
+                                        a.Send(Sendthing[SendKey[0]], _socket);
+                                        Sendthing.Remove(SendKey[0]);
+                                        SendKey.RemoveAt(0);
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+                            cantlink = 0;
+                        }
+                        catch (Exception e)
+                        {
+                            if (a != null && _socket != null)
+                            {
+                                cantlink++;
+                                a.CatchMessage(_socket.ToString() + " " + e.ToString() + " from Tell cantlink:" + cantlink);
+                                if (cantlink > 50)
+                                {
+                                    a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (a != null)
+                    {
+                        a.CatchMessage(e.Message + " from Reply");
+                    }
+                }
+            });
+        }
+
+        public void P2PTell(Response response, bool _Lock = true)
+        {
+            string sendkey = SetSendKey();
+            ThreadPool.QueueUserWorkItem((aa) =>
+            {
+                try
+                {
+                    if (Key != "" && _socket != null)
+                    {
+                        try
+                        {
+
+                            NetBitStream stream = new NetBitStream();
+                            stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_SERVER_CALL);
+                            stream.WriteResponse2(response, Key, _Lock);
                             stream.EncodeHeader();
                             lock (SendKey)
                             {

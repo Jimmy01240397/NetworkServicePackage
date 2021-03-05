@@ -2,30 +2,109 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading;
 
 namespace UnityNetwork.Client
 {
-    public class ClientLinkerUDP : NetworkManager
+    public class ClientLinkerUDP
     {
         NetUDPClient client;
         ClientListenUDP listener;
+
+
         bool getcheck = true;
         private int cantlink = 0;
-        public string key { get; private set; } = "";
-        public int UnLockTime = 0;
-        public int LockTime = 0;
+
+        private NetworkManager networkManager;
+
+        private Dictionary<PeerForP2P, bool> Link;
+
+        string _key = "";
+
+        private bool enableP2P = false;
+
+        public bool EnableP2P
+        {
+            get
+            {
+                return enableP2P;
+            }
+            set
+            {
+                enableP2P = value;
+                if (client != null)
+                {
+                    client.enableP2P = enableP2P;
+                }
+            }
+        }
+
+        public string key
+        {
+            get
+            {
+                return _key;
+            }
+            private set
+            {
+                _key = value;
+                client.key = value;
+            }
+        }
+
+        public System.Collections.ArrayList P2PSocketList
+        {
+            get
+            {
+                return networkManager._socketList;
+            }
+        }
+        public Dictionary<string, object> ToPeerP2PIP
+        {
+            get
+            {
+                return networkManager.ToPeerUDPIP;
+            }
+        }
+        public Dictionary<IPEndPoint, object> ToPeerP2P
+        {
+            get
+            {
+                return networkManager.ToPeerUDP;
+            }
+        }
+        public int PacketSize
+        {
+            get
+            {
+                return networkManager.PacketSize;
+            }
+        }
+        public int PacketCount
+        {
+            get
+            {
+                return networkManager.PacketCount;
+            }
+            set
+            {
+                networkManager.PacketCount = value;
+            }
+        }
 
         object locker = new object();
 
         List<string> SendKey = new List<string>();
         Dictionary<string, NetBitStream> Sendthing = new Dictionary<string, NetBitStream>();
 
-        public ClientLinkerUDP(ClientListenUDP a) : base()
+        public ClientLinkerUDP(ClientListenUDP a)
         {
             listener = (ClientListenUDP)a;
         }
+
+
         public bool Connect(string ip, int port)
         {
             if (client != null)
@@ -34,8 +113,12 @@ namespace UnityNetwork.Client
                 client.GetMessage -= OnGetMessage;
             }
             client = null;
-            while (!getcheck) { }
-            client = new NetUDPClient(this);
+            networkManager = null;
+            SpinWait.SpinUntil(() => getcheck);
+            networkManager = new NetworkManager();
+            Link = new Dictionary<PeerForP2P, bool>();
+            client = new NetUDPClient(networkManager);
+            client.enableP2P = enableP2P;
             client.Cheak += OnCheck;
             client.GetMessage += OnGetMessage;
             bool b = client.Connect(ip, port);
@@ -52,7 +135,7 @@ namespace UnityNetwork.Client
 
         private void OnCheck(ushort ID, NetBitStream stream)
         {
-            if (ID == (ushort)MessageIdentifiers.ID.KEY || ID == (ushort)MessageIdentifiers.ID.CHECKING || ID == (ushort)MessageIdentifiers.ID.ID_CHAT || ID == (ushort)MessageIdentifiers.ID.ID_CHAT2 || ID == (ushort)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT || ID == (ushort)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT2)
+            if (ID >= (ushort)MessageIdentifiers.ID.CHECKING && ID <= (ushort)MessageIdentifiers.ID.P2P_SERVER_CALL)
             {
                 lock (locker)
                 {
@@ -89,6 +172,15 @@ namespace UnityNetwork.Client
             {
 
             }
+
+            if (enableP2P)
+            {
+                for (int i = 0; i < networkManager._socketList.Count; i++)
+                {
+                    ((PeerForP2P)networkManager._socketList[i]).OffLine();
+                }
+            }
+
             if (listener != null)
             {
                 listener.DebugReturn("Disconnect");
@@ -97,6 +189,10 @@ namespace UnityNetwork.Client
             client.GetMessage -= OnGetMessage;
             client.Disconnect(0);
             client = null;
+            Link.Clear();
+            Link = null;
+            networkManager.Clear();
+            networkManager = null;
             listener = null;
             key = "";
         }
@@ -119,8 +215,6 @@ namespace UnityNetwork.Client
             {
                 if (key != "")
                 {
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
                     try
                     {
                         NetBitStream stream = new NetBitStream();
@@ -159,24 +253,64 @@ namespace UnityNetwork.Client
                             }
                         }
                     }
-                    finally
-                    {
-                        stopwatch.Stop();
-                        LockTime = (int)stopwatch.ElapsedMilliseconds;
-                        stopwatch.Reset();
-                    }
+                }
+                else
+                {
+                    SendKey.Remove(sendkey);
                 }
             });
         }
 
-        public void NatImportask(byte Code, Dictionary<byte, Object> Parameter, bool _Lock = true)
+        public void StartP2PConnect(IPEndPoint IPPort)
+        {
+            if (enableP2P)
+            {
+                client.P2PConnectServer(new Response(0, new Dictionary<byte, Object>() { { 0, IPPort.ToString() } }));
+            }
+            else
+            {
+                throw new Exception("P2P mode is not enable.");
+            }
+        }
+
+        public void P2PConnecting(string IPPort, Action callback)
+        {
+            try
+            {
+                NetBitStream stream = new NetBitStream();
+                Response b = new Response(0, new Dictionary<byte, Object>());
+                stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CONNECTION);
+                stream.WriteResponse2(b, key, false);
+                stream.EncodeHeader();
+                if (!client.Send(stream, new IPEndPoint(IPAddress.Parse(IPPort.Split(':')[0]), Convert.ToInt32(IPPort.Split(':')[1]))))
+                {
+                    callback();
+                }
+                else
+                {
+                    new Thread(() =>
+                    {
+                        Thread.Sleep(500);
+                        if (!ToPeerP2PIP.ContainsKey(IPPort))
+                        {
+                            callback();
+                        }
+
+                    }).Start();
+                }
+            }
+            catch (Exception)
+            {
+                callback();
+            }
+        }
+
+        public void NotImportask(byte Code, Dictionary<byte, Object> Parameter, bool _Lock = true)
         {
             ThreadPool.QueueUserWorkItem((aa) =>
             {
                 if (key != "")
                 {
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
                     try
                     {
                         NetBitStream stream = new NetBitStream();
@@ -199,17 +333,11 @@ namespace UnityNetwork.Client
                             }
                         }
                     }
-                    finally
-                    {
-                        stopwatch.Stop();
-                        LockTime = (int)stopwatch.ElapsedMilliseconds;
-                        stopwatch.Reset();
-                    }
                 }
             });
         }
 
-        public void CheckKey()
+        private void CheckKey()
         {
             if (key != "")
             {
@@ -229,7 +357,7 @@ namespace UnityNetwork.Client
             }
         }
 
-        public void check(int[] ints)
+        private void check(int[] ints)
         {
             try
             {
@@ -256,10 +384,10 @@ namespace UnityNetwork.Client
             }
         }
 
-        public override void Update()
+        public void Update()
         {
             NetPacket packet = null;
-            for (packet = GetPacket(); packet != null; packet = GetPacket())
+            for (packet = networkManager.GetPacket(); packet != null; packet = networkManager.GetPacket())
             {
                 try
                 {
@@ -271,6 +399,8 @@ namespace UnityNetwork.Client
                     {
                         case (ushort)MessageIdentifiers.ID.CONNECTION_REQUEST_ACCEPTED:
                             {
+                                Thread b = new Thread(new ThreadStart(check));
+                                b.Start();
                                 Thread a = new Thread(new ThreadStart(check2));
                                 a.Start();
                                 break;
@@ -367,13 +497,217 @@ namespace UnityNetwork.Client
                                 }
                                 break;
                             }
+                        case (ushort)MessageIdentifiers.ID.P2P_SERVER_CALL:
+                            {
+                                switch (packet.response.Code)
+                                {
+                                    case 0:
+                                        {
+                                            string[] IP = packet.response.Parameters[0].ToString().Split(':');
+                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
+                                            client.P2PAllowList.Add(iPEndPoint);
+
+                                            NetBitStream stream = new NetBitStream();
+                                            stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CHECKING);
+                                            stream.EncodeHeader();
+                                            client.Send(stream, iPEndPoint);
+
+                                            client.P2PConnectServer(new Response(1, packet.response.Parameters));
+                                            break;
+                                        }
+                                    case 1:
+                                        {
+                                            string[] IP = packet.response.Parameters[0].ToString().Split(':');
+                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
+                                            client.P2PAllowList.Add(iPEndPoint);
+
+                                            NetBitStream stream = new NetBitStream();
+                                            stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CHECKING);
+                                            stream.EncodeHeader();
+                                            client.Send(stream, iPEndPoint);
+
+                                            P2PConnecting(packet.response.Parameters[0].ToString(), () =>
+                                            {
+                                                client.P2PConnectServer(new Response(2, new Dictionary<byte, object>() { { 0, packet.response.Parameters[0].ToString() } }));
+                                            });
+                                            break;
+                                        }
+                                    case 2:
+                                        {
+                                            P2PConnecting(packet.response.Parameters[0].ToString(), () =>
+                                            {
+                                                client.P2PConnectServer(new Response(3, new Dictionary<byte, object>() { { 0, packet.response.Parameters[0].ToString() } }));
+                                                string[] IP = packet.response.Parameters[0].ToString().Split(':');
+                                                IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
+                                                PeerForP2P peerForP2P = listener.P2PAddPeer(iPEndPoint, client, false);
+                                                networkManager.ToPeerUDP.Add(iPEndPoint, peerForP2P);
+                                                networkManager.ToPeerUDPIP.Add(packet.response.Parameters[0].ToString(), peerForP2P);
+                                                networkManager._socketList.Add(peerForP2P);
+                                                Link.Add(peerForP2P, true);
+                                                peerForP2P.OnLink();
+                                            });
+                                            break;
+                                        }
+                                    case 3:
+                                        {
+                                            string[] IP = packet.response.Parameters[0].ToString().Split(':');
+                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
+                                            PeerForP2P peerForP2P = listener.P2PAddPeer(iPEndPoint, client, false);
+                                            networkManager.ToPeerUDP.Add(iPEndPoint, peerForP2P);
+                                            networkManager.ToPeerUDPIP.Add(packet.response.Parameters[0].ToString(), peerForP2P);
+                                            networkManager._socketList.Add(peerForP2P);
+                                            Link.Add(peerForP2P, true);
+                                            peerForP2P.OnLink();
+                                            break;
+                                        }
+                                    case 4:
+                                        {
+                                            string[] IP = packet.response.Parameters[0].ToString().Split(':');
+                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
+                                            NetBitStream stream = new NetBitStream();
+                                            stream.BYTES = (byte[])packet.response.Parameters[1];
+                                            stream._socketUDP = iPEndPoint;
+                                            stream.DecodeHeader();
+                                            client.PushPacket2(stream);
+                                            break;
+                                        }
+                                }
+                                break;
+                            }
+                        case (ushort)MessageIdentifiers.ID.P2P_CONNECTION:
+                            {
+                                switch (packet.response.Code)
+                                {
+                                    case 0:
+                                        {
+                                            string[] IP = packet._peerUDP.ToString().Split(':');
+                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
+                                            PeerForP2P peerForP2P = listener.P2PAddPeer(iPEndPoint, client, true);
+                                            networkManager.ToPeerUDP.Add(iPEndPoint, peerForP2P);
+                                            networkManager.ToPeerUDPIP.Add(iPEndPoint.ToString(), peerForP2P);
+                                            networkManager._socketList.Add(peerForP2P);
+                                            Link.Add(peerForP2P, true);
+                                            peerForP2P.OnLink();
+
+                                            NetBitStream stream = new NetBitStream();
+                                            Response b = new Response(1, new Dictionary<byte, object>());
+                                            stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CONNECTION);
+                                            stream.WriteResponse2(b, key, false);
+                                            stream.EncodeHeader();
+                                            client.Send(stream, packet._peerUDP);
+                                            break;
+                                        }
+                                    case 1:
+                                        {
+                                            string[] IP = packet._peerUDP.ToString().Split(':');
+                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
+                                            PeerForP2P peerForP2P = listener.P2PAddPeer(iPEndPoint, client, true);
+                                            networkManager.ToPeerUDP.Add(iPEndPoint, peerForP2P);
+                                            networkManager.ToPeerUDPIP.Add(iPEndPoint.ToString(), peerForP2P);
+                                            networkManager._socketList.Add(peerForP2P);
+                                            Link.Add(peerForP2P, true);
+                                            peerForP2P.OnLink();
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            break;
+                                        }
+                                }
+                                break;
+                            }
+                        case (ushort)MessageIdentifiers.ID.P2P_CHECKING:
+                            {
+                                lock (Link)
+                                {
+                                    if (networkManager.ToPeerUDP.ContainsKey(packet._peerUDP))
+                                    {
+                                        if (Link.ContainsKey((PeerForP2P)networkManager.ToPeerUDP[packet._peerUDP]))
+                                        {
+                                            //listener.DebugReturn(packet._peerUDP + ", check");
+                                            Link[(PeerForP2P)networkManager.ToPeerUDP[packet._peerUDP]] = true;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        case (ushort)MessageIdentifiers.ID.P2P_ID_CHAT:
+                            {
+                                //listener.DebugReturn(packet.response.Code + " " + packet.response.Parameters[0].ToString());
+                                try
+                                {
+                                    if (networkManager.ToPeerUDP.ContainsKey(packet._peerUDP))
+                                    {
+                                        ((PeerForP2P)networkManager.ToPeerUDP[packet._peerUDP]).OnOperationRequest(packet.response);
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    listener.DebugReturn(((PeerForP2P)networkManager.ToPeerUDP[packet._peerUDP]).socket.ToString() + " " + e.Message + "From OnOperationRequest");
+                                }
+                                lock (Link)
+                                {
+                                    if (networkManager.ToPeerUDP.ContainsKey(packet._peerUDP))
+                                    {
+                                        if (Link.ContainsKey((PeerForP2P)networkManager.ToPeerUDP[packet._peerUDP]))
+                                        {
+                                            Link[(PeerForP2P)networkManager.ToPeerUDP[packet._peerUDP]] = true;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        case (ushort)MessageIdentifiers.ID.P2P_LOST:
+                            {
+                                PeerForP2P peerForP2P = (PeerForP2P)networkManager.ToPeerUDP[packet._peerUDP];
+                                if (packet._error == "")
+                                {
+                                    NetBitStream stream = new NetBitStream();
+                                    stream.BeginReadUDP2(packet);
+                                    stream.ReadResponse2("");
+                                    stream.EncodeHeader();
+                                    packet._error = stream.thing.DebugMessage;
+                                }
+                                listener.DebugReturn(peerForP2P.socket.ToString() + "+" + packet._error);
+                                if (client != null && peerForP2P.socket != null)
+                                {
+                                    NetBitStream stream2 = new NetBitStream();
+                                    Response b = new Response();
+                                    b.DebugMessage = "伺服器端主動關閉";
+                                    stream2.BeginWrite((ushort)MessageIdentifiers.ID.CONNECTION_LOST);
+                                    stream2.WriteResponse2(b, "");
+                                    stream2.EncodeHeader();
+                                    this.client.Send(stream2, peerForP2P.socket);
+                                }
+                                try
+                                {
+                                    peerForP2P.OnDisconnect();
+                                }
+                                catch (Exception e)
+                                {
+                                    listener.DebugReturn(peerForP2P.socket.ToString() + " " + e.Message + "From OnDisconnect");
+                                }
+                                if (networkManager._socketList.Contains(peerForP2P))
+                                {
+                                    networkManager._socketList.Remove(peerForP2P);
+                                }
+                                lock (Link)
+                                {
+                                    Link.Remove(peerForP2P);
+                                }
+                                ToPeerP2P.Remove(packet._peerUDP);
+                                ToPeerP2PIP.Remove(packet._peerUDP.ToString());
+                                client.P2PAllowList.Remove(packet._peerUDP);
+                                peerForP2P.Close();
+                                peerForP2P = null;
+                                break;
+                            }
                         default:
                             {
                                 // 錯誤
                                 break;
                             }
                     }
-
                 }
                 catch (Exception e)
                 {
@@ -387,7 +721,7 @@ namespace UnityNetwork.Client
             }// end fore
         }
 
-        public void Doing(object thing)
+        private void Doing(object thing)
         {
             Response response = (Response)thing;
             if (listener != null)
@@ -419,7 +753,32 @@ namespace UnityNetwork.Client
             }
         }
 
-        public void check2()
+        protected void check()
+        {
+            try
+            {
+                while (client != null)
+                {
+                    if (networkManager._socketList != null)
+                    {
+                        for (int i = 0; i < networkManager._socketList.Count; i++)
+                        {
+                            if (((PeerForP2P)networkManager._socketList[i]) != null)
+                            {
+                                ((PeerForP2P)networkManager._socketList[i]).check();
+                            }
+                        }
+                        Thread.Sleep(1000);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                listener.DebugReturn(e.Message + " from UDPAppllicationCheck");
+            }
+        }
+
+        private void check2()
         {
             while (getcheck)
             {
@@ -427,7 +786,50 @@ namespace UnityNetwork.Client
                 {
                     getcheck = false;
                 }
+                if (Link != null)
+                {
+                    lock (Link)
+                    {
+                        foreach (PeerForP2P peerForP2P in networkManager._socketList)
+                        {
+                            if (Link.ContainsKey(peerForP2P))
+                            {
+                                Link[peerForP2P] = false;
+                            }
+                        }
+                    }
+                }
                 Thread.Sleep(5000);
+                if (networkManager != null)
+                {
+                    for (int i = 0; i < networkManager._socketList.Count; i++)
+                    {
+                        lock (Link)
+                        {
+                            if (Link.ContainsKey((PeerForP2P)networkManager._socketList[i]))
+                            {
+                                if (!Link[(PeerForP2P)networkManager._socketList[i]])
+                                {
+                                    client.P2PPushPacket((ushort)MessageIdentifiers.ID.P2P_LOST, "超過5秒沒有回應", ((PeerForP2P)networkManager._socketList[i]).socket);
+                                }
+                            }
+                            else
+                            {
+                                client.P2PPushPacket((ushort)MessageIdentifiers.ID.P2P_LOST, "超過5秒沒有回應", ((PeerForP2P)networkManager._socketList[i]).socket);
+                            }
+                        }
+                    }
+                }
+            }
+            if (networkManager != null)
+            {
+                for (int i = 0; i < networkManager._socketList.Count; i++)
+                {
+                    lock (Link)
+                    {
+                        client.P2PPushPacket((ushort)MessageIdentifiers.ID.P2P_LOST, "超過5秒沒有回應", ((PeerForP2P)networkManager._socketList[i]).socket);
+                    }
+                }
             }
             if (client != null)
             {

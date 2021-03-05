@@ -11,8 +11,8 @@ namespace UnityNetwork
     {
         // 最大連接數
         private int _maxConnections = -1;
-        public int _sendTimeout = 500;
-        public int _revTimeout = 1000;
+        private int _sendTimeout = 500;
+        private int _revTimeout = 1000;
 
         TcpListener _listener;
         public delegate void Message(string i);
@@ -358,7 +358,7 @@ namespace UnityNetwork
 
                     ns.BeginRead(stream3.BYTES, 0, NetBitStream.header_length, new System.AsyncCallback(Receive), new object[] { ns, stream3._socketTCP, stream3.BYTES });
 
-                    if (msgid <= 0 || msgid >= 12)
+                    if (msgid < (ushort)MessageIdentifiers.ID.NULL || msgid >= (ushort)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT2)
                     {
                         try
                         {
@@ -467,7 +467,7 @@ namespace UnityNetwork
         }
 
         // 向Network Manager的佇列傳遞資料
-        public ushort PushPacket2(NetBitStream stream)
+        private ushort PushPacket2(NetBitStream stream)
         {
             NetPacket packet = new NetPacket(stream.BYTES.Length);
             stream.BYTES.CopyTo(packet._bytes, 0);

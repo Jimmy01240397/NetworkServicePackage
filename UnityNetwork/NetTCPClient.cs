@@ -23,6 +23,8 @@ namespace UnityNetwork
         public delegate void Message(string i);
         public event Message GetMessage;
 
+        public string key = "";
+
         public NetTCPClient(NetworkManager network)
         {
             _netMgr = network;
@@ -160,54 +162,6 @@ namespace UnityNetwork
             }
         }
 
-        /*void Receive(object ar)
-        {
-            TcpClient AR = (TcpClient)ar;
-            NetBitStream stream = new NetBitStream();
-            while (run)
-            {
-                try
-                {
-                    NetworkStream ns = AR.GetStream();
-                    if (ns.CanRead)
-                    {
-                        stream.BYTES = new byte[NetBitStream.header_length];
-                        ns.Read(stream.BYTES, 0, NetBitStream.header_length);
-                        stream.DecodeHeader();
-                        stream.BYTES = new byte[NetBitStream.header_length + stream.BodyLength];
-
-                        for (int iIndex = 0; iIndex < stream.BodyLength;)
-                        {
-                            byte[] buffer = new byte[stream.BodyLength];
-                            if (ns.CanRead)
-                            {
-                                int j = ns.Read(buffer, 0, stream.BodyLength - iIndex);
-                                Array.Copy(buffer, 0, stream.BYTES, NetBitStream.header_length + iIndex, j);
-                                iIndex += j;
-                            }
-                        }
-
-                        stream._socket = AR;
-                        ushort ID = System.BitConverter.ToUInt16(stream.BYTES, NetBitStream.header_length); ;
-
-                        if (ID == (ushort)MessageIdentifiers.ID.CHECKING)
-                        {
-                            Cheak();
-                        }
-                        else
-                        {
-                            PushPacket2(stream);
-                        }
-                    }
-                }
-                catch (System.Exception)
-                {
-
-                }
-            }
-
-        }*/
-
         // 發送消息
         public void Send(NetBitStream bts)
         {
@@ -299,7 +253,7 @@ namespace UnityNetwork
                 {
                     NetBitStream stream2 = new NetBitStream();
                     stream2.BeginReadTCP2(packet);
-                    stream2.ReadResponse2(((UnityNetwork.Client.ClientLinkerTCP)_netMgr).key);
+                    stream2.ReadResponse2(key);
                     stream2.EncodeHeader();
                     packet.response = stream2.thing;
                     _netMgr.AddPacket(packetkey, packet);

@@ -39,13 +39,14 @@
   <ItemGroup>
     <Compile Include="Client\ClientLinkerTCP.cs" />
     <Compile Include="Client\ClientLinkerUDP.cs" />
+    <Compile Include="Client\ClientListenTCP.cs" />
     <Compile Include="Client\ClientListenUDP.cs" />
     <Compile Include="Client\LinkCobe.cs" />
+    <Compile Include="Client\PeerForP2P.cs" />
     <Compile Include="MessageTell.cs" />
     <Compile Include="NetUDPClient.cs" />
     <Compile Include="NetUDPServer.cs" />
     <Compile Include="Server\AppllicationTCPBase.cs" />
-    <Compile Include="Client\ClientListenTCP.cs" />
     <Compile Include="MessageIdentifiers.cs" />
     <Compile Include="NetBitStream.cs" />
     <Compile Include="NetPacket.cs" />
@@ -58,13 +59,15 @@
     <Compile Include="Response.cs" />
     <Compile Include="Server\PeerUDPBase.cs" />
     <Compile Include="Server\UDPServerInvokeSend.cs" />
-    <Compile Include="TimeStopWatch.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="P2P\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

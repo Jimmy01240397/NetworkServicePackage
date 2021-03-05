@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace UnityNetwork.Server
 {
-    public class AppllicationTCPBase : NetworkManager
+    public class AppllicationTCPBase
     {
         // 邏輯執行緒
         Thread NetThread;
@@ -19,71 +19,65 @@ namespace UnityNetwork.Server
         public double CloseTime { get; set; }
 
         // 用戶端列表
-        public Dictionary<PeerTCPBase, bool> Link;
+        private Dictionary<PeerTCPBase, bool> Link;
         bool run;
         bool Clean;
         public delegate void Message(byte t, string i);
         public event Message GetMessage;
 
-        public void Start()
+        public System.Collections.ArrayList SocketList
         {
-            CloseTime = -1;
-            run = true;
-            Clean = false;
-            // 創建一個列表保存每個用戶端的Socket
-            _socketList = new System.Collections.ArrayList();
-            ToPeerTCPIP = new Dictionary<string, object>();
-            ToPeerTCP = new Dictionary<TcpClient, object>();
-            Link = new Dictionary<PeerTCPBase, bool>();
-
-            _server = new NetTCPServer(this, -1);
-            _server.GetMessage += _server_GetMessage;
-
-            try
+            get
             {
-                // 為邏輯部分建立新的執行緒
-                NetThread = new Thread(new ThreadStart(Update));
-                NetThread.Start();
-                Thread checking = new Thread(new ThreadStart(check));
-                checking.Start();
-                Thread checking2 = new Thread(new ThreadStart(check2));
-                checking2.Start();
-                string w;
-                try
-                {
-                    if (_server.CreateTcpServer(GetIPv4List(), GetPort(), out w))
-                    {
-                        GetMessage?.Invoke(0, w);
-                    }
-                    else
-                    {
-                        GetMessage?.Invoke(4, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + " " + "錯誤：" + w);
-                    }
-                }
-                catch (Exception e)
-                {
-                    _server_GetMessage(e.ToString() + "From StartCreateTcpServer");
-                }
-                Setup();
-            }
-            catch (Exception e)
-            {
-                _server_GetMessage(e.ToString() + "From Start");
+                return networkManager._socketList;
             }
         }
-        public void Start(int maxConnections)
+        public Dictionary<string, object> ToPeerTCPIP
+        {
+            get
+            {
+                return networkManager.ToPeerTCPIP;
+            }
+        }
+        public Dictionary<TcpClient, object> ToPeerTCP
+        {
+            get
+            {
+                return networkManager.ToPeerTCP;
+            }
+        }
+        public int PacketSize
+        {
+            get
+            {
+                return networkManager.PacketSize;
+            }
+        }
+        public int PacketCount
+        {
+            get
+            {
+                return networkManager.PacketCount;
+            }
+            set
+            {
+                networkManager.PacketCount = value;
+            }
+        }
+
+        private NetworkManager networkManager;
+
+        public void Start(int maxConnections = -1)
         {
             CloseTime = -1;
             run = true;
             Clean = false;
             // 創建一個列表保存每個用戶端的Socket
-            _socketList = new System.Collections.ArrayList();
-            ToPeerTCPIP = new Dictionary<string, object>();
-            ToPeerTCP = new Dictionary<TcpClient, object>();
             Link = new Dictionary<PeerTCPBase, bool>();
 
+            networkManager = new NetworkManager();
 
-            _server = new NetTCPServer(this, maxConnections);
+            _server = new NetTCPServer(networkManager, maxConnections);
             _server.GetMessage += _server_GetMessage;
 
             try
@@ -119,38 +113,32 @@ namespace UnityNetwork.Server
                 _server_GetMessage(e.ToString() + "From Start");
             }
         }
-        public virtual void Setup()
+        protected virtual void Setup()
         {
 
         }
 
-        public override void Update()
+        private void Update()
         {
             NetPacket packet = null;
             while (run)
             {
                 try
                 {
-                    if (_socketList.Count == 0 && Clean)
+                    if (networkManager._socketList.Count == 0 && Clean)
                     {
                         lock (Link)
                         {
                             Clean = false;
-                            CleanPacket();
-                            _socketList = null;
-                            ToPeerTCPIP = null;
-                            ToPeerTCP = null;
-                            _socketList = new System.Collections.ArrayList();
-                            ToPeerTCPIP = new Dictionary<string, object>();
-                            ToPeerTCP = new Dictionary<TcpClient, object>();
+                            networkManager.Clear();
                             Link.Clear();
                             CleanUp();
                         }
                     }
 
-                    SpinWait.SpinUntil(() => !run || this.PacketSize != 0);
+                    SpinWait.SpinUntil(() => !run || networkManager.PacketSize != 0);
 
-                    for (packet = GetPacket(); packet != null; packet = GetPacket())
+                    for (packet = networkManager.GetPacket(); packet != null; packet = networkManager.GetPacket())
                     {
                         try
                         {
@@ -174,9 +162,9 @@ namespace UnityNetwork.Server
                                         if (Peer != null)
                                         {
                                             Peer.GetKey(packet._error);
-                                            _socketList.Add(Peer);
-                                            ToPeerTCPIP.Add(packet._peerTCP.Client.RemoteEndPoint.ToString(), Peer);
-                                            ToPeerTCP.Add(packet._peerTCP, Peer);
+                                            networkManager._socketList.Add(Peer);
+                                            networkManager.ToPeerTCPIP.Add(packet._peerTCP.Client.RemoteEndPoint.ToString(), Peer);
+                                            networkManager.ToPeerTCP.Add(packet._peerTCP, Peer);
                                             lock (Link)
                                             {
                                                 Link.Add(Peer, true);
@@ -212,6 +200,17 @@ namespace UnityNetwork.Server
                         }
                         packet = null;
                     }// end while
+                    if (CloseTime != -1 && CloseTime < new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds)
+                    {
+                        try
+                        {
+                            Disconnect();
+                        }
+                        catch (Exception e)
+                        {
+                            GetMessage(4, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + " " + "錯誤：" + e.ToString());
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
@@ -220,7 +219,7 @@ namespace UnityNetwork.Server
                 }
             }
         }
-        public virtual int GetPort()
+        protected virtual int GetPort()
         {
             return 10001;
         }
@@ -230,18 +229,26 @@ namespace UnityNetwork.Server
             ipv4Addresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
             return ipv4Addresses[0].ToString();
         }
-        public void Finding(object _find)
+        protected void Finding(object _find)
         {
             try
             {
                 Find c = (Find)_find;
-                if (ToPeerTCP.ContainsKey(c.packet._peerTCP))
+                if (networkManager.ToPeerTCP.ContainsKey(c.packet._peerTCP))
                 {
-                    PeerTCPBase a = (PeerTCPBase)ToPeerTCP[c.packet._peerTCP];
+                    PeerTCPBase a = (PeerTCPBase)networkManager.ToPeerTCP[c.packet._peerTCP];
                     switch (c.cobe)
                     {
                         case 1:
                             {
+                                if (c.packet._error == "")
+                                {
+                                    NetBitStream stream = new NetBitStream();
+                                    stream.BeginReadTCP2(c.packet);
+                                    stream.ReadResponse2("");
+                                    stream.EncodeHeader();
+                                    c.packet._error = stream.thing.DebugMessage;
+                                }
                                 GetMessage?.Invoke(2, a.socket.Client.RemoteEndPoint.ToString() + "+" + c.packet._error);
                                 if (_server != null && a.socket != null)
                                 {
@@ -264,13 +271,13 @@ namespace UnityNetwork.Server
                                 {
                                     _server_GetMessage(a.socket.Client.RemoteEndPoint.ToString() + " " + e.Message + "From OnDisconnect");
                                 }
-                                _socketList.Remove(a);
+                                networkManager._socketList.Remove(a);
                                 lock (Link)
                                 {
                                     Link.Remove(a);
                                 }
-                                ToPeerTCP.Remove(c.packet._peerTCP);
-                                ToPeerTCPIP.Remove(c.packet._peerTCP.Client.RemoteEndPoint.ToString());
+                                networkManager.ToPeerTCP.Remove(c.packet._peerTCP);
+                                networkManager.ToPeerTCPIP.Remove(c.packet._peerTCP.Client.RemoteEndPoint.ToString());
                                 a.Close();
                                 a = null;
                                 break;
@@ -335,17 +342,17 @@ namespace UnityNetwork.Server
             }
         }
 
-        public void check()
+        protected void check()
         {
             try
             {
-                if (_socketList != null)
+                if (networkManager._socketList != null)
                 {
                     while (run)
                     {
-                        for (int i = 0; i < _socketList.Count; i++)
+                        for (int i = 0; i < networkManager._socketList.Count; i++)
                         {
-                            ((PeerTCPBase)_socketList[i]).check();
+                            ((PeerTCPBase)networkManager._socketList[i]).check();
                         }
                         Thread.Sleep(1000);
                     }
@@ -357,21 +364,21 @@ namespace UnityNetwork.Server
             }
         }
 
-        public void check2()
+        protected void check2()
         {
             try
             {
                 while (run)
                 {
-                    if (_socketList != null)
+                    if (networkManager._socketList != null)
                     {
-                        for (int i = 0; i < _socketList.Count; i++)
+                        for (int i = 0; i < networkManager._socketList.Count; i++)
                         {
                             lock (Link)
                             {
-                                if (Link.ContainsKey((PeerTCPBase)_socketList[i]))
+                                if (Link.ContainsKey((PeerTCPBase)networkManager._socketList[i]))
                                 {
-                                    Link[(PeerTCPBase)_socketList[i]] = false;
+                                    Link[(PeerTCPBase)networkManager._socketList[i]] = false;
                                 }
                             }
                         }
@@ -384,20 +391,20 @@ namespace UnityNetwork.Server
                         stopwatch.Stop();
                         string x = stopwatch.ElapsedMilliseconds.ToString();
                         stopwatch.Reset();
-                        for (int i = 0; i < _socketList.Count; i++)
+                        for (int i = 0; i < networkManager._socketList.Count; i++)
                         {
                             lock (Link)
                             {
-                                if (Link.ContainsKey((PeerTCPBase)_socketList[i]))
+                                if (Link.ContainsKey((PeerTCPBase)networkManager._socketList[i]))
                                 {
-                                    if (!Link[(PeerTCPBase)_socketList[i]])
+                                    if (!Link[(PeerTCPBase)networkManager._socketList[i]])
                                     {
-                                        _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應:Link == false " + x, ((PeerTCPBase)_socketList[i]).socket);
+                                        _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應:Link == false " + x, ((PeerTCPBase)networkManager._socketList[i]).socket);
                                     }
                                 }
                                 else
                                 {
-                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應:無Link" + x, ((PeerTCPBase)_socketList[i]).socket);
+                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應:無Link" + x, ((PeerTCPBase)networkManager._socketList[i]).socket);
                                 }
                             }
                         }
@@ -411,17 +418,17 @@ namespace UnityNetwork.Server
         }
 
 
-public virtual PeerTCPBase AddPeerBase(TcpClient _peer, NetTCPServer server)
+        protected virtual PeerTCPBase AddPeerBase(TcpClient _peer, NetTCPServer server)
         {
             return new PeerTCPBase(_peer, server);
         }
 
-        public virtual void TearDown()
+        protected virtual void TearDown()
         {
 
         }
 
-        public virtual void CleanUp()
+        protected virtual void CleanUp()
         {
 
         }
@@ -433,26 +440,22 @@ public virtual PeerTCPBase AddPeerBase(TcpClient _peer, NetTCPServer server)
 
         public void Disconnect()
         {
-            for (int i = 0; i < _socketList.Count; i++)
+            for (int i = 0; i < networkManager._socketList.Count; i++)
             {
-                ((PeerTCPBase)_socketList[i]).OffLine();
+                ((PeerTCPBase)networkManager._socketList[i]).OffLine();
             }
             Thread a = new Thread(new ThreadStart(exit));
             a.Start();
         }
-        public void exit()
+        protected void exit()
         {
             Thread.Sleep(4000);
             TearDown();
             _server.close();
             _server.GetMessage -= _server_GetMessage;
-            _socketList.Clear();
-            ToPeerTCP.Clear();
-            ToPeerTCPIP.Clear();
+            networkManager.Clear();
             Link.Clear();
-            _socketList = null;
-            ToPeerTCP = null;
-            ToPeerTCPIP = null;
+            networkManager = null;
             Link = null;
             run = false;
             NetThread = null;
