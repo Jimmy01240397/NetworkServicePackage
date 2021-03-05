@@ -12,13 +12,15 @@ namespace UnityNetwork.Server
     public class PeerUDPBase
     {
         private IPEndPoint _socket;
-        private NetUDPServer a;
+        private NetUDPServer _server;
         public string Key { get; private set; } = "";
         private int cantlink = 0;
         public readonly object Lock = new object();
 
         List<string> SendKey = new List<string>();
         Dictionary<string, NetBitStream> Sendthing = new Dictionary<string, NetBitStream>();
+
+        protected Action<ushort, string, IPEndPoint> PushPacket;
 
         public IPEndPoint socket
         {
@@ -28,7 +30,8 @@ namespace UnityNetwork.Server
         public PeerUDPBase(IPEndPoint peer, NetUDPServer _server)
         {
             _socket = peer;
-            a = _server;
+            this._server = _server;
+            PushPacket = this._server.PushPacket;
         }
 
         public virtual void OnOperationRequest(Response response)
@@ -48,24 +51,24 @@ namespace UnityNetwork.Server
 
         public void OffLine()
         {
-            if (a != null && _socket != null)
+            if (_server != null && _socket != null)
             {
-                a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "伺服器端主動斷線", _socket);
+                _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "伺服器端主動斷線", _socket);
                 NetBitStream stream2 = new NetBitStream();
                 Response b = new Response();
                 b.DebugMessage = "伺服器端主動斷線";
                 stream2.BeginWrite((ushort)MessageIdentifiers.ID.CONNECTION_LOST);
                 stream2.WriteResponse2(b, "");
                 stream2.EncodeHeader();
-                a.Send(stream2, _socket);
+                _server.Send(stream2, _socket);
             }
         }
 
         public void ErrorOffLine(string Message)
         {
-            if (a != null && _socket != null)
+            if (_server != null && _socket != null)
             {
-                a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, Message, _socket);
+                _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, Message, _socket);
                 try
                 {
                     NetBitStream stream2 = new NetBitStream();
@@ -74,7 +77,7 @@ namespace UnityNetwork.Server
                     stream2.BeginWrite((ushort)MessageIdentifiers.ID.CONNECTION_LOST);
                     stream2.WriteResponse2(b, "");
                     stream2.EncodeHeader();
-                    a.Send(stream2, _socket);
+                    _server.Send(stream2, _socket);
                 }
                 catch(Exception)
                 {
@@ -85,13 +88,13 @@ namespace UnityNetwork.Server
 
         string SetSendKey()
         {
-            string a;
+            string _server;
             lock (SendKey)
             {
-                for (a = Guid.NewGuid().ToString(); SendKey.Contains(a); a = Guid.NewGuid().ToString()) { }
-                SendKey.Add(a);
+                for (_server = Guid.NewGuid().ToString(); SendKey.Contains(_server); _server = Guid.NewGuid().ToString()) { }
+                SendKey.Add(_server);
             }
-            return a;
+            return _server;
         }
 
         public void Reply(byte Code, Dictionary<byte, Object> Parameter, short ReturnCode, string DebugMessage, bool _Lock = true)
@@ -117,7 +120,7 @@ namespace UnityNetwork.Server
                                 {
                                     if (Sendthing.ContainsKey(SendKey[0]))
                                     {
-                                        a.Send(Sendthing[SendKey[0]], _socket);
+                                        _server.Send(Sendthing[SendKey[0]], _socket);
                                         Sendthing.Remove(SendKey[0]);
                                         SendKey.RemoveAt(0);
                                     }
@@ -131,13 +134,13 @@ namespace UnityNetwork.Server
                         }
                         catch (Exception e)
                         {
-                            if (a != null && _socket != null)
+                            if (_server != null && _socket != null)
                             {
                                 cantlink++;
-                                a.CatchMessage(_socket.ToString() + " " + e.Message + " from Reply cantlink:" + cantlink);
+                                _server.CatchMessage(_socket.ToString() + " " + e.Message + " from Reply cantlink:" + cantlink);
                                 if (cantlink > 50)
                                 {
-                                    a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
+                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
                                 }
                             }
                         }
@@ -145,9 +148,9 @@ namespace UnityNetwork.Server
                 }
                 catch (Exception e)
                 {
-                    if (a != null)
+                    if (_server != null)
                     {
-                        a.CatchMessage(e.Message + " from Reply");
+                        _server.CatchMessage(e.Message + " from Reply");
                     }
                 }
             });
@@ -177,7 +180,7 @@ namespace UnityNetwork.Server
                                 {
                                     if (Sendthing.ContainsKey(SendKey[0]))
                                     {
-                                        a.Send(Sendthing[SendKey[0]], _socket);
+                                        _server.Send(Sendthing[SendKey[0]], _socket);
                                         Sendthing.Remove(SendKey[0]);
                                         SendKey.RemoveAt(0);
                                     }
@@ -191,13 +194,13 @@ namespace UnityNetwork.Server
                         }
                         catch (Exception e)
                         {
-                            if (a != null && _socket != null)
+                            if (_server != null && _socket != null)
                             {
                                 cantlink++;
-                                a.CatchMessage(_socket.ToString() + " " + e.ToString() + " from Tell cantlink:" + cantlink);
+                                _server.CatchMessage(_socket.ToString() + " " + e.ToString() + " from Tell cantlink:" + cantlink);
                                 if (cantlink > 50)
                                 {
-                                    a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
+                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
                                 }
                             }
                         }
@@ -205,9 +208,9 @@ namespace UnityNetwork.Server
                 }
                 catch (Exception e)
                 {
-                    if (a != null)
+                    if (_server != null)
                     {
-                        a.CatchMessage(e.Message + " from Reply");
+                        _server.CatchMessage(e.Message + " from Reply");
                     }
                 }
             });
@@ -236,7 +239,7 @@ namespace UnityNetwork.Server
                                 {
                                     if (Sendthing.ContainsKey(SendKey[0]))
                                     {
-                                        a.Send(Sendthing[SendKey[0]], _socket);
+                                        _server.Send(Sendthing[SendKey[0]], _socket);
                                         Sendthing.Remove(SendKey[0]);
                                         SendKey.RemoveAt(0);
                                     }
@@ -250,13 +253,13 @@ namespace UnityNetwork.Server
                         }
                         catch (Exception e)
                         {
-                            if (a != null && _socket != null)
+                            if (_server != null && _socket != null)
                             {
                                 cantlink++;
-                                a.CatchMessage(_socket.ToString() + " " + e.ToString() + " from Tell cantlink:" + cantlink);
+                                _server.CatchMessage(_socket.ToString() + " " + e.ToString() + " from Tell cantlink:" + cantlink);
                                 if (cantlink > 50)
                                 {
-                                    a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
+                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
                                 }
                             }
                         }
@@ -264,9 +267,9 @@ namespace UnityNetwork.Server
                 }
                 catch (Exception e)
                 {
-                    if (a != null)
+                    if (_server != null)
                     {
-                        a.CatchMessage(e.Message + " from Reply");
+                        _server.CatchMessage(e.Message + " from Reply");
                     }
                 }
             });
@@ -287,18 +290,18 @@ namespace UnityNetwork.Server
                             stream.BeginWrite((ushort)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT);
                             stream.WriteResponse2(b, Key, _Lock);
                             stream.EncodeHeader();
-                            a.Send(stream, _socket);
+                            _server.Send(stream, _socket);
                             cantlink = 0;
                         }
                         catch (Exception e)
                         {
-                            if (a != null && _socket != null)
+                            if (_server != null && _socket != null)
                             {
                                 cantlink++;
-                                a.CatchMessage(_socket.ToString() + " " + e.Message + " from Reply cantlink:" + cantlink);
+                                _server.CatchMessage(_socket.ToString() + " " + e.Message + " from Reply cantlink:" + cantlink);
                                 if (cantlink > 50)
                                 {
-                                    a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
+                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
                                 }
                             }
                         }
@@ -306,9 +309,9 @@ namespace UnityNetwork.Server
                 }
                 catch (Exception e)
                 {
-                    if (a != null)
+                    if (_server != null)
                     {
-                        a.CatchMessage(e.Message + " from Reply");
+                        _server.CatchMessage(e.Message + " from Reply");
                     }
                 }
             });
@@ -330,18 +333,18 @@ namespace UnityNetwork.Server
                             stream.BeginWrite((ushort)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT2);
                             stream.WriteResponse2(b, Key, _Lock);
                             stream.EncodeHeader();
-                            a.Send(stream, _socket);
+                            _server.Send(stream, _socket);
                             cantlink = 0;
                         }
                         catch (Exception e)
                         {
-                            if (a != null && _socket != null)
+                            if (_server != null && _socket != null)
                             {
                                 cantlink++;
-                                a.CatchMessage(_socket.ToString() + " " + e.ToString() + " from Tell cantlink:" + cantlink);
+                                _server.CatchMessage(_socket.ToString() + " " + e.ToString() + " from Tell cantlink:" + cantlink);
                                 if (cantlink > 50)
                                 {
-                                    a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
+                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
                                 }
                             }
                         }
@@ -349,9 +352,9 @@ namespace UnityNetwork.Server
                 }
                 catch (Exception e)
                 {
-                    if (a != null)
+                    if (_server != null)
                     {
-                        a.CatchMessage(e.Message + " from Reply");
+                        _server.CatchMessage(e.Message + " from Reply");
                     }
                 }
 
@@ -391,13 +394,13 @@ namespace UnityNetwork.Server
                     }
                     catch (Exception e)
                     {
-                        if (a != null && _socket != null)
+                        if (_server != null && _socket != null)
                         {
                             cantlink++;
-                            a.CatchMessage(_socket.ToString() + " " + e.Message + " from Reply cantlink:" + cantlink);
+                            _server.CatchMessage(_socket.ToString() + " " + e.Message + " from Reply cantlink:" + cantlink);
                             if (cantlink > 50)
                             {
-                                a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
+                                _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
                             }
                         }
                     }
@@ -405,9 +408,9 @@ namespace UnityNetwork.Server
             }
             catch (Exception e)
             {
-                if (a != null)
+                if (_server != null)
                 {
-                    a.CatchMessage(e.Message + " from Reply");
+                    _server.CatchMessage(e.Message + " from Reply");
                 }
             }
         }
@@ -444,13 +447,13 @@ namespace UnityNetwork.Server
                     }
                     catch (Exception e)
                     {
-                        if (a != null && _socket != null)
+                        if (_server != null && _socket != null)
                         {
                             cantlink++;
-                            a.CatchMessage(_socket.ToString() + " " + e.ToString() + " from Tell cantlink:" + cantlink);
+                            _server.CatchMessage(_socket.ToString() + " " + e.ToString() + " from Tell cantlink:" + cantlink);
                             if (cantlink > 50)
                             {
-                                a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
+                                _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
                             }
                         }
                     }
@@ -458,9 +461,9 @@ namespace UnityNetwork.Server
             }
             catch (Exception e)
             {
-                if (a != null)
+                if (_server != null)
                 {
-                    a.CatchMessage(e.Message + " from Reply");
+                    _server.CatchMessage(e.Message + " from Reply");
                 }
             }
         }
@@ -494,18 +497,18 @@ namespace UnityNetwork.Server
                 stream.BeginWrite((ushort)MessageIdentifiers.ID.CHECKING);
                 stream.WriteResponse2(response, "");
                 stream.EncodeHeader();
-                a.Send(stream, _socket);
+                _server.Send(stream, _socket);
                 cantlink = 0;
             }
             catch (Exception e)
             {
-                if (a != null)
+                if (_server != null)
                 {
                     cantlink++;
-                    a.CatchMessage(_socket.ToString() + " " + e.Message + " cantlink:" + cantlink);
+                    _server.CatchMessage(_socket.ToString() + " " + e.Message + " cantlink:" + cantlink);
                     if (cantlink > 50 && _socket != null)
                     {
-                        a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
+                        _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message, _socket);
                     }
                 }
             }
