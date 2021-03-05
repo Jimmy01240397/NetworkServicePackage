@@ -1179,7 +1179,7 @@ namespace UnityNetwork
             }
             else
             {
-                a += "null false";
+                a += "null";
             }
             return a;
         }
