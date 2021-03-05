@@ -29,6 +29,14 @@ namespace UnityNetwork
 
         object SendLock = new object();
 
+        public IPEndPoint MyIP
+        {
+            get
+            {
+                return (IPEndPoint)_socket.Client.LocalEndPoint;
+            }
+        }
+
         public NetUDPClient(NetworkManager network)
         {
             _netMgr = network;
@@ -123,7 +131,7 @@ namespace UnityNetwork
                     return;
                 }
 
-                if ((ID >= (ushort)MessageIdentifiers.ID.P2P_CONNECTION && ID <= (ushort)MessageIdentifiers.ID.P2P_ID_CHAT) && !P2PAllowList.Contains(iPEndPoint))
+                if ((ID >= (ushort)MessageIdentifiers.ID.P2P_LOST && ID <= (ushort)MessageIdentifiers.ID.P2P_ID_CHAT) && !P2PAllowList.Contains(iPEndPoint))
                 {
                     return;
                 }
@@ -255,7 +263,10 @@ namespace UnityNetwork
                     stream2.ReadResponse2(key);
                     stream2.EncodeHeader();
                     packet.response = stream2.thing;
-                    _netMgr.AddPacket(packetkey, packet);
+                    if (!(msgid == (ushort)MessageIdentifiers.ID.P2P_CONNECTION && !P2PAllowList.Contains(new IPEndPoint(IPAddress.Parse(packet.response.Parameters[0].ToString().Split(':')[0]), Convert.ToInt32(packet.response.Parameters[0].ToString().Split(':')[1])))))
+                    {
+                        _netMgr.AddPacket(packetkey, packet);
+                    }
                 }
                 else
                 {

@@ -273,9 +273,19 @@ namespace UnityNetwork.Server
                                     {
                                         if (enableP2P)
                                         {
-                                            if (networkManager.ToPeerUDPIP.TryGetValue(packet.response.Parameters[0].ToString(), out object peer))
+                                            if (packet.response.Parameters[0].ToString() != packet._peerUDP.ToString() && networkManager.ToPeerUDPIP.TryGetValue(packet.response.Parameters[0].ToString(), out object peer))
                                             {
                                                 _server_GetMessage(packet.response.Code + " " + packet.response.Parameters[0]);
+                                                if(packet.response.Code <= 2)
+                                                {
+                                                    List<string> vs = new List<string>((string[])packet.response.Parameters[1]);
+                                                    if(vs.Contains(packet._peerUDP.ToString()))
+                                                    {
+                                                        vs.Remove(packet._peerUDP.ToString());
+                                                    }
+                                                    packet.response.Parameters[1] = vs.ToArray();
+                                                    packet.response.Parameters.Add(2, packet.response.Parameters[0]);
+                                                }
                                                 packet.response.Parameters[0] = packet._peerUDP.ToString();
                                                 ((PeerUDPBase)peer).P2PTell(packet.response);
                                             }

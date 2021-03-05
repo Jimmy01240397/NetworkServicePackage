@@ -82,6 +82,11 @@ namespace UnityNetwork
             return a;
         }
 
+        public void RemovePacketKey(string key)
+        {
+            keys.Remove(key);
+        }
+
         // 數據包入隊
         public void AddPacket(string key, NetPacket packet)
         {
