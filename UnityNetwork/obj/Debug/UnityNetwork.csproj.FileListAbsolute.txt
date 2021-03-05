@@ -91,3 +91,9 @@ C:\Users\jimmy\Desktop\MyServer\UnityNetwork\obj\Debug\UnityNetwork.csprojAssemb
 C:\Users\jimmy\Desktop\MyServer\UnityNetwork\obj\Debug\UnityNetwork.csproj.CoreCompileInputs.cache
 C:\Users\jimmy\Desktop\MyServer\UnityNetwork\obj\Debug\UnityNetwork.dll
 C:\Users\jimmy\Desktop\MyServer\UnityNetwork\obj\Debug\UnityNetwork.pdb
+C:\Users\user\Desktop\MyServer\UnityNetwork\bin\Debug\UnityNetwork.dll
+C:\Users\user\Desktop\MyServer\UnityNetwork\bin\Debug\UnityNetwork.pdb
+C:\Users\user\Desktop\MyServer\UnityNetwork\obj\Debug\UnityNetwork.csprojAssemblyReference.cache
+C:\Users\user\Desktop\MyServer\UnityNetwork\obj\Debug\UnityNetwork.csproj.CoreCompileInputs.cache
+C:\Users\user\Desktop\MyServer\UnityNetwork\obj\Debug\UnityNetwork.dll
+C:\Users\user\Desktop\MyServer\UnityNetwork\obj\Debug\UnityNetwork.pdb

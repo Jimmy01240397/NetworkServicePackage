@@ -12,6 +12,8 @@ namespace UnityNetwork
     public class SerializationData
     {
         static readonly string[] type = new string[] { "Byte[]", "SByte[]", "Int16[]", "Int32[]", "Int64[]", "UInt16[]", "UInt32[]", "UInt64[]", "Single[]", "Double[]", "Decimal[]", "Char[]", "String[]", "Boolean[]", "Object[]", "Dictionary`2", "Byte", "SByte", "Int16", "Int32", "Int64", "UInt16", "UInt32", "UInt64", "Single", "Double", "Decimal", "Char", "String", "Boolean", "Object", "null" };
+        static readonly string[] typelist = new string[] { "byte[]", "sbyte[]", "short[]", "int[]", "long[]", "ushort[]", "uint[]", "ulong[]", "float[]", "double[]", "decimal[]", "char[]", "string[]", "bool[]", "object[]", "Dictionary", "byte", "sbyte", "short", "int", "long", "ushort", "uint", "ulong", "float", "double", "decimal", "char", "string", "bool", "object" };
+        static readonly string[] typelist2 = new string[] { "Byte[]", "SByte[]", "Int16[]", "Int32[]", "Int64[]", "UInt16[]", "UInt32[]", "UInt64[]", "Single[]", "Double[]", "Decimal[]", "Char[]", "String[]", "Boolean[]", "Object[]", "Dictionary`2", "Byte", "SByte", "Int16", "Int32", "Int64", "UInt16", "UInt32", "UInt64", "Single", "Double", "Decimal", "Char", "String", "Boolean", "Object" };
 
         public static byte[] GetBytesLength(int cont)
         {
@@ -632,6 +634,1067 @@ namespace UnityNetwork
         }
 
 
+        static int Matches(string input, char a)
+        {
+            string[] j = Split(input, a);
+            return j.Length + 1;
+        }
+
+        public static string[] Split(string input, char a)
+        {
+            List<string> vs = new List<string>();
+            int now = 0;
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (input[i] == '\\')
+                {
+                    i++;
+                }
+                else if (input[i] == a)
+                {
+                    vs.Add(input.Substring(now, i - now));
+                    now = i + 1;
+                }
+            }
+            vs.Add(input.Substring(now, input.Length - now));
+            return vs.ToArray();
+        }
+
+        public static string FormattingString(string input)
+        {
+            StringBuilder stringBuilder = new StringBuilder(input);
+            for (int i = 0; i < stringBuilder.Length; i++)
+            {
+                if (stringBuilder[i] == '\\')
+                {
+                    stringBuilder.Remove(i, 1);
+                }
+            }
+            return stringBuilder.ToString();
+        }
+
+        public static string BeforeFormatString(string input, char[] a)
+        {
+            StringBuilder stringBuilder = new StringBuilder(input);
+            for (int i = 0; i < stringBuilder.Length; i++)
+            {
+                if (Array.IndexOf(a, stringBuilder[i]) != -1 || stringBuilder[i] == '\\')
+                {
+                    stringBuilder.Insert(i, "\\");
+                    i++;
+                }
+            }
+            return stringBuilder.ToString();
+        }
+
+        public static string[] TakeString(string text, char a, char b)
+        {
+            List<string> q = new List<string>(Split(text, b));
+            if (a == b)
+            {
+                if (q.Count % 2 == 0)
+                {
+                    q.RemoveAt(q.Count - 1);
+                }
+                for (int i = 0; i < q.Count; i++)
+                {
+                    q.RemoveAt(i);
+                }
+                for (int i = 0; i < q.Count; i++)
+                {
+                    q[i] = FormattingString(q[i]);
+                }
+                return q.ToArray();
+            }
+            q.RemoveAt(q.Count - 1);
+            for (int i = 0; i < q.Count;)
+            {
+                if (q[i] != "")
+                {
+                    if (Matches(q[i], a) != Matches(q[i], b) + 1)
+                    {
+                        q[i] += b.ToString() + q[i + 1];
+                        q.RemoveAt(i + 1);
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+                else
+                {
+                    q[i - 1] += b.ToString();
+                    q.RemoveAt(i);
+                }
+            }
+            List<string> vs = new List<string>();
+            foreach (string s in q)
+            {
+                int found = 0;
+                for (int i = 0; i < s.Length; i++)
+                {
+                    if (s[i] == '\\')
+                    {
+                        i++;
+                    }
+                    else if (s[i] == a)
+                    {
+                        found = i;
+                        break;
+                    }
+                }
+                if (found != -1)
+                {
+                    if (found + 1 == s.Length)
+                    {
+                        vs.Add("");
+                    }
+                    else
+                    {
+                        vs.Add(s.Substring(found + 1));
+                    }
+                }
+            }
+            return vs.ToArray();
+        }
+
+        static string RemoveString(string input, string[] arg)
+        {
+            for(int i = 0; i < arg.Length; i++)
+            {
+                input = input.Replace(arg[i], "");
+            }
+            return input;
+        }
+
+        static string printTab(bool enable, int cont)
+        {
+            if(!enable)
+            {
+                return "";
+            }
+            string ans = "\r\n";
+            for(int i = 0; i < cont; i++)
+            {
+                ans += "\t";
+            }
+            return ans;
+        }
+
+        static string ObjectToString(int cont, object thing, bool enter)
+        {
+            string a = "";
+            if (thing != null)
+            {
+                string type = typelist[Array.IndexOf(typelist2, thing.GetType().Name)];
+                a += type + ":";
+                switch (type)
+                {
+                    case "byte[]":
+                        {
+                            byte[] c = (byte[])thing;
+                            if (c.Length > 0)
+                            {
+                                //a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1) + ReadString(c) + printTab(enter, cont) + "}";
+                                /*for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";*/
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "sbyte[]":
+                        {
+                            sbyte[] c = (sbyte[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "short[]":
+                        {
+                            short[] c = (short[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "int[]":
+                        {
+                            int[] c = (int[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "long[]":
+                        {
+                            long[] c = (long[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "ushort[]":
+                        {
+                            ushort[] c = (ushort[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "uint[]":
+                        {
+                            uint[] c = (uint[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "ulong[]":
+                        {
+                            ulong[] c = (ulong[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "float[]":
+                        {
+                            float[] c = (float[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "double[]":
+                        {
+                            double[] c = (double[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "decimal[]":
+                        {
+                            decimal[] c = (decimal[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "char[]":
+                        {
+                            char[] c = (char[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += "\'" + c[i].ToString() + "\',";
+                                }
+                                a += "\'" + BeforeFormatString(c[c.Length - 1].ToString(), new char[] { '\'', '\"', '{', '}', '[', ']', ',', ':' }) + "\'" + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "string[]":
+                        {
+                            string[] c = (string[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += "\"" + c[i].ToString() + "\",";
+                                }
+                                a += "\"" + BeforeFormatString(c[c.Length - 1].ToString(), new char[] { '\'', '\"', '{', '}', '[', ']', ',', ':' }) + "\"" + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "bool[]":
+                        {
+                            bool[] c = (bool[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += c[i].ToString() + ",";
+                                }
+                                a += c[c.Length - 1].ToString() + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "object[]":
+                        {
+                            object[] c = (object[])thing;
+                            if (c.Length > 0)
+                            {
+                                a += printTab(enter, cont) + "{" + printTab(enter, cont + 1);
+                                for (int i = 0; i < c.Length - 1; i++)
+                                {
+                                    a += ObjectToString(cont + 1, c[i], enter) + "," + printTab(enter, cont + 1);
+                                }
+                                a += ObjectToString(cont + 1, c[c.Length - 1], enter) + printTab(enter, cont) + "}";
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            break;
+                        }
+                    case "Dictionary":
+                        {
+                            Type datatype = thing.GetType();
+                            Type[] Subdatatype = datatype.GetGenericArguments();
+                            IDictionary c = (IDictionary)thing;
+                            a += printTab(enter, cont) + "{" + printTab(enter, cont + 1) + typelist[Array.IndexOf(typelist2, Subdatatype[0].Name)] + ":" + typelist[Array.IndexOf(typelist2, Subdatatype[1].Name)] + ":";
+
+                            if (c.Count > 0)
+                            {
+                                Array keys = Array.CreateInstance(Subdatatype[0], c.Keys.Count);
+                                Array values = Array.CreateInstance(Subdatatype[1], c.Values.Count);
+                                c.Keys.CopyTo(keys, 0);
+                                c.Values.CopyTo(values, 0);
+                                for (int i = 0; i < c.Count; i++)
+                                {
+                                    a += printTab(enter, cont + 1) + "{" + printTab(enter, cont + 2) + ObjectToString(cont + 2, keys.GetValue(i), enter) + "," + printTab(enter, cont + 2) + ObjectToString(cont + 2, values.GetValue(i), enter) + printTab(enter, cont + 1) + "}";
+                                }
+                            }
+                            else
+                            {
+                                a += "NotThing";
+                            }
+                            a += printTab(enter, cont) + "}";
+                            break;
+                        }
+                    case "byte":
+                        {
+                            byte c = (byte)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "sbyte":
+                        {
+                            sbyte c = (sbyte)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "short":
+                        {
+                            short c = (short)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "int":
+                        {
+                            int c = (int)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "long":
+                        {
+                            long c = (long)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "ushort":
+                        {
+                            ushort c = (ushort)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "uint":
+                        {
+                            uint c = (uint)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "ulong":
+                        {
+                            ulong c = (ulong)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "float":
+                        {
+                            float c = (float)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "double":
+                        {
+                            double c = (double)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "decimal":
+                        {
+                            decimal c = (decimal)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    case "char":
+                        {
+                            char c = (char)thing;
+                            a += "\'" + BeforeFormatString(c.ToString(), new char[] { '\'', '\"', '{', '}', '[', ']', ',', ':' }) + "\'";
+                            break;
+                        }
+                    case "string":
+                        {
+                            string c = (string)thing;
+                            a += "\"" + BeforeFormatString(c.ToString(), new char[] { '\'', '\"', '{', '}', '[', ']', ',', ':' }) + "\"";
+                            break;
+                        }
+                    case "bool":
+                        {
+                            bool c = (bool)thing;
+                            a += c.ToString();
+                            break;
+                        }
+                    default:
+                        {
+                            a += thing.ToString();
+                            break;
+                        }
+                }
+            }
+            else
+            {
+                a += "null false";
+            }
+            return a;
+        }
+
+        public static string ObjectToString(object thing)
+        {
+            return ObjectToString(0, thing, false);
+        }
+
+        public static string ObjectToStringWithEnter(object thing)
+        {
+            return ObjectToString(0, thing, true);
+        }
+
+        public static object StringToObject(string thing)
+        {
+            string[] vs = Split(thing, ':');
+            string typ = RemoveString(vs[0], new string[] { " ", "\n", "\r", "\t" });
+            object get;
+            switch (typ)
+            {
+                case "byte[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0].Replace(" ", "");
+                            /*string[] b = Split(a, ',');
+                            List<byte> c = new List<byte>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add((byte)Convert.ToInt32(b[i]));
+                            }*/
+                            get = WriteString(a);//c.ToArray();
+                        }
+                        else
+                        {
+                            get = new byte[0];
+                        }
+                        break;
+                    }
+                case "sbyte[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<sbyte> c = new List<sbyte>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToSByte(b[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new sbyte[0];
+                        }
+                        break;
+                    }
+                case "short[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<short> c = new List<short>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToInt16(b[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new short[0];
+                        }
+                        break;
+                    }
+                case "int[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<int> c = new List<int>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToInt32(b[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new int[0];
+                        }
+                        break;
+                    }
+                case "long[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<long> c = new List<long>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToInt64(b[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new long[0];
+                        }
+                        break;
+                    }
+                case "ushort[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<ushort> c = new List<ushort>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToUInt16(b[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new ushort[0];
+                        }
+                        break;
+                    }
+                case "uint[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<uint> c = new List<uint>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToUInt32(b[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new uint[0];
+                        }
+                        break;
+                    }
+                case "ulong[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<ulong> c = new List<ulong>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToUInt64(b[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new ulong[0];
+                        }
+                        break;
+                    }
+                case "float[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<float> c = new List<float>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToSingle(b[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new float[0];
+                        }
+                        break;
+                    }
+                case "double[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<double> c = new List<double>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToDouble(b[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new double[0];
+                        }
+                        break;
+                    }
+                case "decimal[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<decimal> c = new List<decimal>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToDecimal(b[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new decimal[0];
+                        }
+                        break;
+                    }
+                case "char[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<char> c = new List<char>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                string ans = TakeString(b[i], '\'', '\'')[0];
+                                c.Add(Convert.ToChar(ans));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new char[0];
+                        }
+                        break;
+                    }
+                case "string[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<string> c = new List<string>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                string ans = TakeString(b[i], '\"', '\"')[0];
+                                c.Add(Convert.ToString(ans));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new string[0];
+                        }
+                        break;
+                    }
+                case "bool[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = Split(a, ',');
+                            List<bool> c = new List<bool>();
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                c.Add(Convert.ToBoolean(b[i].Replace(" ", "")));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new bool[0];
+                        }
+                        break;
+                    }
+                case "object[]":
+                    {
+                        int found = thing.IndexOf(':');
+                        if (thing.Substring(found + 1) != "NotThing")
+                        {
+                            string a = TakeString(thing.Substring(found + 1), '{', '}')[0];
+                            string[] b = TakeString(a, '{', '}');
+                            for (int i = 0; i < b.Length; i++)
+                            {
+                                int index = a.IndexOf("{" + b[i] + "}");
+                                a = a.Substring(0, index) + "[" + i + "]" + a.Substring(index + b[i].Length + 2);
+                            }
+                            string[] bb = Split(a, ',');
+                            for (int i = 0; i < bb.Length; i++)
+                            {
+                                for (int ii = 0; ii < b.Length; ii++)
+                                {
+                                    bb[i] = bb[i].Replace("[" + ii + "]", "{" + b[ii] + "}");
+                                }
+                            }
+                            List<object> c = new List<object>();
+                            for (int i = 0; i < bb.Length; i++)
+                            {
+                                c.Add(StringToObject(bb[i]));
+                            }
+                            get = c.ToArray();
+                        }
+                        else
+                        {
+                            get = new object[0];
+                        }
+                        break;
+                    }
+                case "Dictionary":
+                    {
+                        int found = thing.IndexOf(':');
+                        string _data = TakeString(thing.Substring(found + 1), '{', '}')[0];
+
+                        int data_index = _data.IndexOf(':');
+                        int data_index2 = _data.IndexOf(':', data_index + 1);
+
+                        string[] data = new string[] { _data.Substring(0, data_index), _data.Substring(data_index + 1, data_index2 - data_index - 1), _data.Substring(data_index2 + 1) };
+                        data[0] = RemoveString(data[0], new string[] { " ", "\n", "\r", "\t" });
+                        data[1] = RemoveString(data[1], new string[] { " ", "\n", "\r", "\t" });
+                        string[] typenames = new string[] { typelist2[Array.IndexOf(typelist, data[0])], typelist2[Array.IndexOf(typelist, data[1])] };
+                        typenames[0] = (typenames[0] == "Dictionary`2" ? "System.Collections.Generic." : "System.") + typenames[0];
+                        typenames[1] = (typenames[1] == "Dictionary`2" ? "System.Collections.Generic." : "System.") + typenames[1];
+                        Type[] types = new Type[] { Type.GetType(typenames[0]), Type.GetType(typenames[1]) };
+
+                        Type thistype = typeof(Dictionary<,>).MakeGenericType(types);
+
+                        get = Activator.CreateInstance(thistype);
+
+                        if (data[2] != "NotThing")
+                        {
+                            System.Reflection.MethodInfo method = thistype.GetMethod("Add");
+
+                            string[] a = TakeString(data[2], '{', '}');
+
+                            for (int i = 0; i < a.Length; i++)
+                            {
+                                string[] b = TakeString(a[i], '{', '}');
+                                for (int ii = 0; ii < b.Length; ii++)
+                                {
+                                    int index = a[i].IndexOf("{" + b[ii] + "}");
+                                    a[i] = a[i].Substring(0, index) + "[" + ii + "]" + a[i].Substring(index + b[ii].Length + 2);
+                                }
+                                string[] nowdata = Split(a[i], ',');
+                                for (int ii = 0; ii < nowdata.Length; ii++)
+                                {
+                                    for (int iii = 0; iii < b.Length; iii++)
+                                    {
+                                        nowdata[ii] = nowdata[ii].Replace("[" + iii + "]", "{" + b[iii] + "}");
+                                    }
+                                }
+                                object key = StringToObject(nowdata[0]);
+                                object value = StringToObject(nowdata[1]);
+                                method.Invoke(get, new object[] { key, value });
+                            }
+                        }
+                        break;
+                    }
+                case "byte":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = (byte)Convert.ToInt32(a);
+                        break;
+                    }
+                case "sbyte":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = Convert.ToSByte(a);
+                        break;
+                    }
+                case "short":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = Convert.ToInt16(a);
+                        break;
+                    }
+                case "int":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = Convert.ToInt32(a);
+                        break;
+                    }
+                case "long":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = Convert.ToInt64(a);
+                        break;
+                    }
+                case "ushort":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = Convert.ToUInt16(a);
+                        break;
+                    }
+                case "uint":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = Convert.ToUInt32(a);
+                        break;
+                    }
+                case "ulong":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = Convert.ToUInt64(a);
+                        break;
+                    }
+                case "float":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = Convert.ToSingle(a);
+                        break;
+                    }
+                case "double":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = Convert.ToDouble(a);
+                        break;
+                    }
+                case "decimal":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1);
+                        get = Convert.ToDecimal(a);
+                        break;
+                    }
+                case "char":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = TakeString(thing.Substring(found + 1), '\'', '\'')[0];
+                        get = Convert.ToChar(a);
+                        break;
+                    }
+                case "string":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = TakeString(thing.Substring(found + 1), '\"', '\"')[0];
+                        get = Convert.ToString(a);
+                        break;
+                    }
+                case "bool":
+                    {
+                        int found = thing.IndexOf(':');
+                        string a = thing.Substring(found + 1).Replace(" ", "");
+                        get = Convert.ToBoolean(a);
+                        break;
+                    }
+                case "null":
+                    {
+                        get = null;
+                        break;
+                    }
+                default:
+                    {
+                        get = typ;
+                        break;
+                    }
+            }
+            return get;
+        }
+
+        public static string BytesToString(byte[] input)
+        {
+            object datas = ToObject(input);
+            return ObjectToString(datas);
+        }
+
+        public static string BytesToStringWithEnter(byte[] input)
+        {
+            object datas = ToObject(input);
+            return ObjectToStringWithEnter(datas);
+        }
+
+        public static byte[] StringToBytes(string input)
+        {
+            object data = StringToObject(input);
+            return ToBytes(data);
+        }
+
         /// <summary>
         /// AES加密演算法
         /// </summary>
@@ -838,6 +1901,7 @@ namespace UnityNetwork
 
         static public byte[] WriteString(string str)
         {
+            str = RemoveString(str, new string[] { " ", "\n", "\r", "\t" });
             byte[] bytes = new byte[str.Length / 2];
             int j = 0;
             for (int i = 0; i < bytes.Length; i++)
