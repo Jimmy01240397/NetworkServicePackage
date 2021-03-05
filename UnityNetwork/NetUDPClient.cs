@@ -22,25 +22,11 @@ namespace UnityNetwork
         public delegate void Message(string i);
         public event Message GetMessage;
 
-        public List<IPEndPoint> P2PAllowList = null;
-
-        public string key = "";
-        public bool enableP2P = false;
-
         object SendLock = new object();
-
-        public IPEndPoint MyIP
-        {
-            get
-            {
-                return (IPEndPoint)_socket.Client.LocalEndPoint;
-            }
-        }
 
         public NetUDPClient(NetworkManager network)
         {
             _netMgr = network;
-            P2PAllowList = new List<IPEndPoint>();
         }
 
 
@@ -86,25 +72,6 @@ namespace UnityNetwork
             return true;
         }
 
-        public void P2PConnectServer(Response response)
-        {
-            if (key != "")
-            {
-                try
-                {
-                    NetBitStream stream = new NetBitStream();
-                    stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_SERVER_CALL);
-                    stream.WriteResponse2(response, key, true);
-                    stream.EncodeHeader();
-                    Send(stream);
-                }
-                catch (Exception e)
-                {
-                    OnGetMessage(e.ToString());
-                }
-            }
-        }
-
         void Receive(System.IAsyncResult ar)
         {
             UdpClient uc = (UdpClient)ar.AsyncState;
@@ -117,7 +84,7 @@ namespace UnityNetwork
             {
                 byte[] bytes = uc.EndReceive(ar, ref iPEndPoint);
 
-                stream._socketUDP = iPEndPoint;
+                stream._socketUDP = ipe;
 
                 stream.BYTES = bytes;
 
@@ -125,16 +92,6 @@ namespace UnityNetwork
 
                 _socket.BeginReceive(new AsyncCallback(Receive), uc);
                 ushort ID = System.BitConverter.ToUInt16(stream.BYTES, NetBitStream.header_length);
-
-                if (!enableP2P && (ID >= (ushort)MessageIdentifiers.ID.P2P_SERVER_CALL && ID <= (ushort)MessageIdentifiers.ID.P2P_ID_CHAT))
-                {
-                    return;
-                }
-
-                if ((ID >= (ushort)MessageIdentifiers.ID.P2P_LOST && ID <= (ushort)MessageIdentifiers.ID.P2P_ID_CHAT) && !P2PAllowList.Contains(iPEndPoint))
-                {
-                    return;
-                }
 
                 Cheak(ID, stream);
                 if (ID != (ushort)MessageIdentifiers.ID.CHECKING)
@@ -168,26 +125,6 @@ namespace UnityNetwork
             }
         }
 
-        public bool Send(NetBitStream bts, IPEndPoint iPEndPoint)
-        {
-            if (SendLock != null)
-            {
-                lock (SendLock)
-                {
-                    try
-                    {
-                        return _socket.Send(bts.BYTES, bts.Length, iPEndPoint) != 0;
-                        //ns.Write(bts.BYTES, 0, bts.Length);
-                    }
-                    catch (System.Exception e)
-                    {
-                        return false;
-                    }
-                }
-            }
-            return false;
-        }
-
         public void SetAuxiliaryServer(NetBitStream bts, int Port)
         {
             if (SendLock != null)
@@ -216,23 +153,6 @@ namespace UnityNetwork
             //run = false;
         }
 
-        public void OnGetMessage(string message)
-        {
-            GetMessage?.Invoke(message);
-        }
-
-        // 向Network Manager的佇列傳遞內部消息
-        public void P2PPushPacket(ushort msgid, string exception, IPEndPoint peer)
-        {
-
-            NetPacket packet = new NetPacket(NetBitStream.header_length + NetBitStream.max_body_length);
-            packet.SetIDOnly(msgid);
-            packet._error = exception;
-            packet._peerUDP = peer;
-
-            _netMgr.AddPacket(_netMgr.AddPacketKey(), packet);
-        }
-
         // 向Network Manager的佇列傳遞內部消息
         public void PushPacket(ushort msgid, string exception)
         {
@@ -246,27 +166,25 @@ namespace UnityNetwork
         }
 
         // 向Network Manager的佇列傳遞資料
-        public void PushPacket2(NetBitStream stream)
+        void PushPacket2(NetBitStream stream)
         {
+
             NetPacket packet = new NetPacket(stream.BYTES.Length);
             stream.BYTES.CopyTo(packet._bytes, 0);
-            packet._peerUDP = stream._socketUDP;
+            packet._peerUDP = ipe;
             ushort msgid = 0;
             packet.TOID(out msgid);
             try
             {
                 string packetkey = _netMgr.AddPacketKey();
-                if (msgid >= (ushort)MessageIdentifiers.ID.ID_CHAT && msgid <= (ushort)MessageIdentifiers.ID.P2P_ID_CHAT)
+                if (msgid == (short)MessageIdentifiers.ID.ID_CHAT || msgid == (short)MessageIdentifiers.ID.ID_CHAT2 || msgid == (short)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT || msgid == (short)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT2)
                 {
                     NetBitStream stream2 = new NetBitStream();
                     stream2.BeginReadUDP2(packet);
-                    stream2.ReadResponse2(key);
+                    stream2.ReadResponse2(((UnityNetwork.Client.ClientLinkerUDP)_netMgr).key);
                     stream2.EncodeHeader();
                     packet.response = stream2.thing;
-                    if (!(msgid == (ushort)MessageIdentifiers.ID.P2P_CONNECTION && !P2PAllowList.Contains(new IPEndPoint(IPAddress.Parse(packet.response.Parameters[0].ToString().Split(':')[0]), Convert.ToInt32(packet.response.Parameters[0].ToString().Split(':')[1])))))
-                    {
-                        _netMgr.AddPacket(packetkey, packet);
-                    }
+                    _netMgr.AddPacket(packetkey, packet);
                 }
                 else
                 {

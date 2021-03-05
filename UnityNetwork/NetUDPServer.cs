@@ -12,13 +12,12 @@ namespace UnityNetwork
     {
         // 最大連接數
         private int _maxConnections = -1;
-        private int _revTimeout = 1000;
+        public int _revTimeout = 1000;
 
         UdpClient _listener;
         public delegate void Message(string i);
         public event Message GetMessage;
 
-        public bool enableP2P = false;
         // 埠號
         int _port = 0;
 
@@ -61,7 +60,7 @@ namespace UnityNetwork
             _listener = null;
         }
 
-        private void Receive(System.IAsyncResult ar)
+        void Receive(System.IAsyncResult ar)
         {
             try
             {
@@ -93,12 +92,6 @@ namespace UnityNetwork
                 // 獲得訊息體長度
                 stream.DecodeHeader();
                 ushort msgid = System.BitConverter.ToUInt16(stream.BYTES, NetBitStream.header_length);
-
-                if (!enableP2P && (msgid >= (ushort)MessageIdentifiers.ID.P2P_SERVER_CALL && msgid <= (ushort)MessageIdentifiers.ID.P2P_ID_CHAT))
-                {
-                    return;
-                }
-
                 if (!((msgid == (ushort)MessageIdentifiers.ID.ID_CHAT || msgid == (ushort)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT || msgid == (ushort)MessageIdentifiers.ID.CHECKING || msgid == (ushort)MessageIdentifiers.ID.CONNECTION_LOST || msgid == (ushort)MessageIdentifiers.ID.KEY) && !_netMgr.ToPeerUDP.ContainsKey(ipe)))
                 {
                     PushPacket2(stream);
@@ -176,7 +169,7 @@ namespace UnityNetwork
         }
 
         // 向Network Manager的佇列傳遞資料
-        private ushort PushPacket2(NetBitStream stream)
+        public ushort PushPacket2(NetBitStream stream)
         {
 
             NetPacket packet = new NetPacket(stream.BYTES.Length);
@@ -189,7 +182,7 @@ namespace UnityNetwork
                 try
                 {
                     string packetkey = _netMgr.AddPacketKey();
-                    if (msgid == (short)MessageIdentifiers.ID.ID_CHAT || msgid == (short)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT || msgid == (short)MessageIdentifiers.ID.P2P_SERVER_CALL)
+                    if (msgid == (short)MessageIdentifiers.ID.ID_CHAT || msgid == (short)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT)
                     {
                         NetBitStream stream2 = new NetBitStream();
                         stream2.BeginReadUDP2(packet);

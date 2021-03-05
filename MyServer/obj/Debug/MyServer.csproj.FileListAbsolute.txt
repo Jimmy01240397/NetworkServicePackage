@@ -186,18 +186,3 @@ L:\Data\C Studio\My Project\MyServerNew\MyServer\obj\Debug\MyServer.csproj.CoreC
 L:\Data\C Studio\My Project\MyServerNew\MyServer\obj\Debug\MyServer.csproj.CopyComplete
 L:\Data\C Studio\My Project\MyServerNew\MyServer\obj\Debug\MyServer.exe
 L:\Data\C Studio\My Project\MyServerNew\MyServer\obj\Debug\MyServer.pdb
-C:\GameProjects\MyServerNew\MyServer\bin\Debug\MyServer.exe.config
-C:\GameProjects\MyServerNew\MyServer\bin\Debug\MyServer.exe
-C:\GameProjects\MyServerNew\MyServer\bin\Debug\MyServer.pdb
-C:\GameProjects\MyServerNew\MyServer\bin\Debug\Servers.dll
-C:\GameProjects\MyServerNew\MyServer\bin\Debug\UnityNetwork.dll
-C:\GameProjects\MyServerNew\MyServer\bin\Debug\Servers.pdb
-C:\GameProjects\MyServerNew\MyServer\bin\Debug\UnityNetwork.pdb
-C:\GameProjects\MyServerNew\MyServer\obj\Debug\MyServer.csprojAssemblyReference.cache
-C:\GameProjects\MyServerNew\MyServer\obj\Debug\MyServer.ProjectInstaller.resources
-C:\GameProjects\MyServerNew\MyServer\obj\Debug\MyServer.Service1.resources
-C:\GameProjects\MyServerNew\MyServer\obj\Debug\MyServer.csproj.GenerateResource.cache
-C:\GameProjects\MyServerNew\MyServer\obj\Debug\MyServer.csproj.CoreCompileInputs.cache
-C:\GameProjects\MyServerNew\MyServer\obj\Debug\MyServer.csproj.CopyComplete
-C:\GameProjects\MyServerNew\MyServer\obj\Debug\MyServer.exe
-C:\GameProjects\MyServerNew\MyServer\obj\Debug\MyServer.pdb

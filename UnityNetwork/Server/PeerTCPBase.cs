@@ -9,8 +9,8 @@ namespace UnityNetwork.Server
 {
     public class PeerTCPBase
     {
-        private TcpClient _socket;
-        private NetTCPServer a;
+        protected TcpClient _socket;
+        public NetTCPServer a;
         public string Key { get; private set; } = "";
         private int cantlink = 0;
 
@@ -58,28 +58,6 @@ namespace UnityNetwork.Server
                     stream2.WriteResponse2(b, "");
                     stream2.EncodeHeader();
                     a.Send(stream2, _socket);
-                }
-            }
-        }
-
-        public void ErrorOffLine(string Message)
-        {
-            if (a != null && _socket != null)
-            {
-                a.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, Message, _socket);
-                try
-                {
-                    NetBitStream stream2 = new NetBitStream();
-                    Response b = new Response();
-                    b.DebugMessage = Message;
-                    stream2.BeginWrite((ushort)MessageIdentifiers.ID.CONNECTION_LOST);
-                    stream2.WriteResponse2(b, "");
-                    stream2.EncodeHeader();
-                    a.Send(stream2, _socket);
-                }
-                catch (Exception)
-                {
-
                 }
             }
         }

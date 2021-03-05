@@ -41,7 +41,7 @@ namespace MyServer
             server.GetMessage += server_GetMessage;
             try
             {
-                server.Start();
+                server.Start(false);
             }
             catch(Exception e)
             {
@@ -65,7 +65,7 @@ namespace MyServer
                                     {
                                         case 0:
                                             {
-                                                foreach (PeerTCPBase peerTCP in server.SocketList)
+                                                foreach (PeerTCPBase peerTCP in server._socketList)
                                                 {
                                                     peerTCP.NotImportTell(response.Code, new Dictionary<byte, object>() { { 0, response.Parameters[1] } });
                                                 }
@@ -86,7 +86,7 @@ namespace MyServer
                                                     int q = (int)(((double)response.Parameters[1] - new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds) / 60000);
                                                     if (q > 0)
                                                     {
-                                                        foreach (PeerTCPBase peerTCP in server.SocketList)
+                                                        foreach (PeerTCPBase peerTCP in server._socketList)
                                                         {
                                                             peerTCP.NotImportTell(response.Code, new Dictionary<byte, object>() { { 0, "伺服器將於" + q + "分鐘關閉" } });
                                                         }
@@ -133,10 +133,14 @@ namespace MyServer
 
         private void timer1_Tick(object sender, ElapsedEventArgs e)
         {
-            Response aa = new Response(3, new Dictionary<byte, object>() { { 0, ServiceName } }, 0, server.SocketList.Count + " " + server.PacketSize.ToString() + " " + server.PacketCount.ToString() + " " + server.UpdateData());
+            Response aa = new Response(3, new Dictionary<byte, object>() { { 0, ServiceName } }, 0, server._socketList.Count + " " + server.PacketSize.ToString() + " " + server.PacketCount.ToString() + " " + server.UpdateData());
             server.PacketCount = 0;
             byte[] bb = aa.AllToByte("");
             uc.Send(bb, bb.Length, ipep);
+            if (server.CloseTime != -1 && server.CloseTime < new TimeSpan(DateTime.Now.Ticks).TotalMilliseconds)
+            {
+                new ServiceController(this.ServiceName).Stop();
+            }
         }
     }
 }

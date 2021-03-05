@@ -23,8 +23,6 @@ namespace UnityNetwork
         public delegate void Message(string i);
         public event Message GetMessage;
 
-        public string key = "";
-
         public NetTCPClient(NetworkManager network)
         {
             _netMgr = network;
@@ -100,6 +98,67 @@ namespace UnityNetwork
             }
         }
 
+        /*// 連接伺服器
+        public bool Connect(string address, int remotePort)
+        {
+            if (_socket != null && _socket.Connected)
+                return true;
+
+            int i = 0;
+            IPHostEntry hostEntry = Dns.GetHostEntry(address);
+            foreach (IPAddress ip in hostEntry.AddressList)
+            {
+                try
+                {
+                    //獲得遠端伺服器的地址
+                    IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(address), remotePort);
+
+                    PushPacket((ushort)MessageIdentifiers.ID.LOADING_NOW, "正在嘗試連線IP:" + ipe.ToString());
+                    // 開始連接
+                    _socket.Connect(ipe);
+                    PushPacket((ushort)MessageIdentifiers.ID.LOADING_NOW, "等待回檔...");
+                    Thread.Sleep(100);
+                    TimeStopWatch stopwatch = new TimeStopWatch();
+                    stopwatch.Start();
+                    while (!_socket.Connected && stopwatch.ElapsedMilliseconds < 200) { }
+                    stopwatch.Stop();
+                    stopwatch.Reset();
+                    stopwatch = null;
+                    if (_socket.Connected)
+                    {
+                        PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_REQUEST_ACCEPTED, "");
+                        Thread myThread = new Thread(new ParameterizedThreadStart(Receive));
+                        myThread.IsBackground = true;
+                        myThread.Start(_socket);
+                    }
+                    else
+                    {
+                        PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_ATTEMPT_FAILED, "無法連線至伺服器");
+                        return false;
+                    }
+
+                    i = 1;
+                    break;
+
+                }
+                catch (System.Exception)
+                {
+                    PushPacket((ushort)MessageIdentifiers.ID.LOADING_NOW, "失敗");
+                    // 連接失敗
+                }
+
+            }
+            
+            if(i == 0)
+            {
+                PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_ATTEMPT_FAILED, "無法連線至伺服器");
+                return false;
+            }
+            return true;
+        }*/
+
+
+
         void Receive(System.IAsyncResult ar)
         {
             object[] ar2 = (object[])ar.AsyncState;
@@ -127,21 +186,28 @@ namespace UnityNetwork
                 Array.Resize(ref bytes, NetBitStream.header_length + stream.BodyLength);
                 stream.BYTES = bytes;
 
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start();
                 for (int iIndex = 0; iIndex < stream.BodyLength;)
                 {
                     byte[] buffer = new byte[stream.BodyLength];
-                    SpinWait.SpinUntil(() => ns.CanRead && ns.DataAvailable, 2000);
                     if (ns.CanRead && ns.DataAvailable)
                     {
                         int j = ns.Read(buffer, 0, stream.BodyLength - iIndex);
                         Array.Copy(buffer, 0, stream.BYTES, NetBitStream.header_length + iIndex, j);
                         iIndex += j;
                     }
-                    else
+                    else if (stopwatch.ElapsedMilliseconds > 4000)
                     {
+                        stopwatch.Stop();
+                        stopwatch.Reset();
+                        stopwatch = null;
                         return;
                     }
                 }
+                stopwatch.Stop();
+                stopwatch.Reset();
+                stopwatch = null;
 
                 ushort ID = System.BitConverter.ToUInt16(stream.BYTES, NetBitStream.header_length); ;
 
@@ -162,10 +228,63 @@ namespace UnityNetwork
             }
         }
 
+        /*void Receive(object ar)
+        {
+            TcpClient AR = (TcpClient)ar;
+            NetBitStream stream = new NetBitStream();
+            while (run)
+            {
+                try
+                {
+                    NetworkStream ns = AR.GetStream();
+                    if (ns.CanRead)
+                    {
+                        stream.BYTES = new byte[NetBitStream.header_length];
+                        ns.Read(stream.BYTES, 0, NetBitStream.header_length);
+                        stream.DecodeHeader();
+                        stream.BYTES = new byte[NetBitStream.header_length + stream.BodyLength];
+
+                        for (int iIndex = 0; iIndex < stream.BodyLength;)
+                        {
+                            byte[] buffer = new byte[stream.BodyLength];
+                            if (ns.CanRead)
+                            {
+                                int j = ns.Read(buffer, 0, stream.BodyLength - iIndex);
+                                Array.Copy(buffer, 0, stream.BYTES, NetBitStream.header_length + iIndex, j);
+                                iIndex += j;
+                            }
+                        }
+
+                        stream._socket = AR;
+                        ushort ID = System.BitConverter.ToUInt16(stream.BYTES, NetBitStream.header_length); ;
+
+                        if (ID == (ushort)MessageIdentifiers.ID.CHECKING)
+                        {
+                            Cheak();
+                        }
+                        else
+                        {
+                            PushPacket2(stream);
+                        }
+                    }
+                }
+                catch (System.Exception)
+                {
+
+                }
+            }
+
+        }*/
+
         // 發送消息
         public void Send(NetBitStream bts)
         {
-            SpinWait.SpinUntil(() => _socket.Connected, 200);
+            TimeStopWatch stopwatch = new TimeStopWatch();
+            stopwatch.Start();
+            while (!_socket.Connected && stopwatch.ElapsedMilliseconds < 200) { }
+            stopwatch.Stop();
+            stopwatch.Reset();
+            stopwatch = null;
 
             if (!_socket.Connected)
             {
@@ -253,7 +372,7 @@ namespace UnityNetwork
                 {
                     NetBitStream stream2 = new NetBitStream();
                     stream2.BeginReadTCP2(packet);
-                    stream2.ReadResponse2(key);
+                    stream2.ReadResponse2(((UnityNetwork.Client.ClientLinkerTCP)_netMgr).key);
                     stream2.EncodeHeader();
                     packet.response = stream2.thing;
                     _netMgr.AddPacket(packetkey, packet);

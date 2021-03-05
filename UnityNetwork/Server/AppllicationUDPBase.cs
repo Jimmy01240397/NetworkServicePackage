@@ -11,7 +11,7 @@ using UnityNetwork;
 
 namespace UnityNetwork.Server
 {
-    public class AppllicationUDPBase
+    public class AppllicationUDPBase : NetworkManager
     {
         // 邏輯執行緒
         Thread NetThread;
@@ -23,86 +23,25 @@ namespace UnityNetwork.Server
         Dictionary<int, bool> AuxiliaryServerListLink = new Dictionary<int, bool>();
 
         // 用戶端列表
-        private Dictionary<PeerUDPBase, bool> Link;
-        private List<PeerUDPBase> NewLink;
+        public Dictionary<PeerUDPBase, bool> Link;
+        public List<PeerUDPBase> NewLink;
         bool run;
         bool Clean;
         public delegate void Message(byte t, string i);
         public event Message GetMessage;
 
-        private bool enableP2P = false;
-
-        public bool EnableP2P
-        {
-            get
-            {
-                return enableP2P;
-            }
-            set
-            {
-                enableP2P = value;
-                if (_server != null)
-                {
-                    _server.enableP2P = enableP2P;
-                }
-            }
-        }
-
-        public System.Collections.ArrayList SocketList
-        {
-            get
-            {
-                return networkManager._socketList;
-            }
-        }
-        public Dictionary<string, object> ToPeerUDPIP
-        {
-            get
-            {
-                return networkManager.ToPeerUDPIP;
-            }
-        }
-        public Dictionary<IPEndPoint, object> ToPeerUDP
-        {
-            get
-            {
-                return networkManager.ToPeerUDP;
-            }
-        }
-        public int PacketSize
-        {
-            get
-            {
-                return networkManager.PacketSize;
-            }
-        }
-        public int PacketCount
-        {
-            get
-            {
-                return networkManager.PacketCount;
-            }
-            set
-            {
-                networkManager.PacketCount = value;
-            }
-        }
-
-        private NetworkManager networkManager;
-
-        public void Start(int maxConnections = -1)
+        public void Start()
         {
             run = true;
             Clean = false;
             // 創建一個列表保存每個用戶端的Socket
-            networkManager = new NetworkManager();
-
+            _socketList = new System.Collections.ArrayList();
+            ToPeerUDP = new Dictionary<IPEndPoint, object>();
+            ToPeerUDPIP = new Dictionary<string, object>();
             Link = new Dictionary<PeerUDPBase, bool>();
             NewLink = new List<PeerUDPBase>();
 
-
-            _server = new NetUDPServer(networkManager, maxConnections);
-            _server.enableP2P = enableP2P;
+            _server = new NetUDPServer(this, -1);
             _server.GetMessage += _server_GetMessage;
 
             try
@@ -137,32 +76,135 @@ namespace UnityNetwork.Server
                 _server_GetMessage(e.ToString() + "From Start");
             }
         }
-        protected virtual void Setup()
+        public void Start(bool thread)
+        {
+            run = true;
+            Clean = false;
+            // 創建一個列表保存每個用戶端的Socket
+            _socketList = new System.Collections.ArrayList();
+            ToPeerUDPIP = new Dictionary<string, object>();
+            ToPeerUDP = new Dictionary<IPEndPoint, object>();
+            Link = new Dictionary<PeerUDPBase, bool>();
+            NewLink = new List<PeerUDPBase>();
+
+
+            _server = new NetUDPServer(this, -1);
+            _server.GetMessage += _server_GetMessage;
+
+            try
+            {
+                // 為邏輯部分建立新的執行緒
+                NetThread = new Thread(new ParameterizedThreadStart(Update));
+                NetThread.Start(thread);
+                Thread checking = new Thread(new ThreadStart(check));
+                checking.Start();
+                Thread checking2 = new Thread(new ThreadStart(check2));
+                checking2.Start();
+                string w;
+                try
+                {
+                    if (_server.CreateUdpServer(GetIPv4List(), GetPort(), out w))
+                    {
+                        GetMessage?.Invoke(0, w);
+                    }
+                    else
+                    {
+                        GetMessage?.Invoke(4, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + " " + "錯誤：" + w);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _server_GetMessage(e.ToString() + "From StartCreateUDpServer");
+                }
+                Setup();
+            }
+            catch (Exception e)
+            {
+                _server_GetMessage(e.ToString() + "From Start");
+            }
+        }
+        public void Start(bool thread, int maxConnections)
+        {
+            run = true;
+            Clean = false;
+            // 創建一個列表保存每個用戶端的Socket
+            _socketList = new System.Collections.ArrayList();
+            ToPeerUDPIP = new Dictionary<string, object>();
+            ToPeerUDP = new Dictionary<IPEndPoint, object>();
+            Link = new Dictionary<PeerUDPBase, bool>();
+            NewLink = new List<PeerUDPBase>();
+
+
+            _server = new NetUDPServer(this, maxConnections);
+            _server.GetMessage += _server_GetMessage;
+
+            try
+            {
+                // 為邏輯部分建立新的執行緒
+                NetThread = new Thread(new ParameterizedThreadStart(Update));
+                NetThread.Start(thread);
+                Thread checking = new Thread(new ThreadStart(check));
+                checking.Start();
+                Thread checking2 = new Thread(new ThreadStart(check2));
+                checking2.Start();
+                string w;
+                try
+                {
+                    if (_server.CreateUdpServer(GetIPv4List(), GetPort(), out w))
+                    {
+                        GetMessage?.Invoke(0, w);
+                    }
+                    else
+                    {
+                        GetMessage?.Invoke(4, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + " " + "錯誤：" + w);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _server_GetMessage(e.ToString() + "From StartCreateUDpServer");
+                }
+                Setup();
+            }
+            catch (Exception e)
+            {
+                _server_GetMessage(e.ToString() + "From Start");
+            }
+        }
+        public virtual void Setup()
         {
 
         }
 
-        private void Update()
+        public override void Update()
         {
             NetPacket packet = null;
             while (run)
             {
                 try
                 {
-                    if (networkManager._socketList.Count == 0 && NewLink.Count == 0 && Clean)
+                    if (_socketList.Count == 0 && NewLink.Count == 0 && Clean)
                     {
                         lock (Link)
                         {
                             Clean = false;
-                            networkManager.Clear();
-                            Link.Clear();
+                            CleanPacket();
+                            _socketList = null;
+                            ToPeerUDPIP = null;
+                            ToPeerUDP = null;
+                            Link = null;
+                            NewLink = null;
+                            _socketList = new System.Collections.ArrayList();
+                            ToPeerUDPIP = new Dictionary<string, object>();
+                            ToPeerUDP = new Dictionary<IPEndPoint, object>();
+                            Link = new Dictionary<PeerUDPBase, bool>();
+                            NewLink = new List<PeerUDPBase>();
                             CleanUp();
                         }
                     }
 
                     SpinWait.SpinUntil(() => !run || this.PacketSize != 0);
 
-                    for (packet = networkManager.GetPacket(); packet != null; packet = networkManager.GetPacket())
+                    for (packet = GetPacket(); packet != null; packet = GetPacket())
                     {
                         try
                         {
@@ -210,17 +252,23 @@ namespace UnityNetwork.Server
                                     }
                                 case (ushort)MessageIdentifiers.ID.CONNECTION_LOST:
                                     {
-                                        Finding(new Find(packet, 1));
+                                        Thread a = new Thread(new ParameterizedThreadStart(Finding));
+                                        a.IsBackground = true;
+                                        a.Start(new Find(packet, 1));
                                         break;
                                     }
                                 case (ushort)MessageIdentifiers.ID.ID_CHAT:
                                     {
-                                        Finding(new Find(packet, 2));
+                                        Thread a = new Thread(new ParameterizedThreadStart(Finding));
+                                        a.IsBackground = true;
+                                        a.Start(new Find(packet, 2));
                                         break;
                                     }
                                 case (ushort)MessageIdentifiers.ID.CHECKING:
                                     {
-                                        Finding(new Find(packet, 3));
+                                        Thread a = new Thread(new ParameterizedThreadStart(Finding));
+                                        a.IsBackground = true;
+                                        a.Start(new Find(packet, 3));
                                         break;
                                     }
                                 case (ushort)MessageIdentifiers.ID.KEY:
@@ -245,7 +293,7 @@ namespace UnityNetwork.Server
 
                                                 _server.Send(stream1, packet._peerUDP);
 
-                                                networkManager._socketList.Add(ToPeerUDP[packet._peerUDP]);
+                                                _socketList.Add(ToPeerUDP[packet._peerUDP]);
                                                 NewLink.Remove((PeerUDPBase)ToPeerUDP[packet._peerUDP]);
                                             }
                                             else
@@ -266,29 +314,6 @@ namespace UnityNetwork.Server
                                             stream2.WriteResponse2(bb, "");
                                             stream2.EncodeHeader();
                                             _server.Send(stream2, packet._peerUDP);
-                                        }
-                                        break;
-                                    }
-                                case (ushort)MessageIdentifiers.ID.P2P_SERVER_CALL:
-                                    {
-                                        if (enableP2P)
-                                        {
-                                            if (packet.response.Parameters[0].ToString() != packet._peerUDP.ToString() && networkManager.ToPeerUDPIP.TryGetValue(packet.response.Parameters[0].ToString(), out object peer))
-                                            {
-                                                _server_GetMessage(packet.response.Code + " " + packet.response.Parameters[0]);
-                                                if(packet.response.Code <= 2)
-                                                {
-                                                    List<string> vs = new List<string>((string[])packet.response.Parameters[1]);
-                                                    if(vs.Contains(packet._peerUDP.ToString()))
-                                                    {
-                                                        vs.Remove(packet._peerUDP.ToString());
-                                                    }
-                                                    packet.response.Parameters[1] = vs.ToArray();
-                                                    packet.response.Parameters.Add(2, packet.response.Parameters[0]);
-                                                }
-                                                packet.response.Parameters[0] = packet._peerUDP.ToString();
-                                                ((PeerUDPBase)peer).P2PTell(packet.response);
-                                            }
                                         }
                                         break;
                                     }
@@ -313,7 +338,275 @@ namespace UnityNetwork.Server
                 }
             }
         }
-        protected virtual int GetPort()
+        public override void Update(object thread)
+        {
+            NetPacket packet = null;
+            while (run)
+            {
+                try
+                {
+                    if (_socketList.Count == 0 && NewLink.Count == 0 && Clean)
+                    {
+                        lock (Link)
+                        {
+                            Clean = false;
+                            CleanPacket();
+                            _socketList = null;
+                            ToPeerUDP = null;
+                            ToPeerUDPIP = null;
+                            Link = null;
+                            _socketList = new System.Collections.ArrayList();
+                            ToPeerUDPIP = new Dictionary<string, object>();
+                            ToPeerUDP = new Dictionary<IPEndPoint, object>();
+                            Link = new Dictionary<PeerUDPBase, bool>();
+                            CleanUp();
+                        }
+                    }
+
+                    SpinWait.SpinUntil(() => !run || this.PacketSize != 0);
+
+                    for (packet = GetPacket(); packet != null; packet = GetPacket())
+                    {
+                        try
+                        {
+                            // 獲得訊息ID
+                            ushort msgid = 0;
+                            try
+                            {
+                                packet.TOID(out msgid);
+                            }
+                            catch (Exception)
+                            {
+                                _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "不正確的標頭資訊", packet._peerUDP);
+                            }
+                            if (Convert.ToBoolean(thread))
+                            {
+
+                                switch (msgid)
+                                {
+                                    case (ushort)MessageIdentifiers.ID.NEW_INCOMING_CONNECTION:
+                                        {
+                                            Clean = true;
+                                            GetMessage?.Invoke(1, packet._peerUDP.ToString());
+                                            PeerUDPBase Peer = AddPeerBase(packet._peerUDP, this._server);
+
+                                            if (Peer != null)
+                                            {
+                                                NewLink.Add(Peer);
+                                                ToPeerUDPIP.Add(packet._peerUDP.ToString(), Peer);
+                                                ToPeerUDP.Add(packet._peerUDP, Peer);
+                                                lock (Link)
+                                                {
+                                                    Link.Add(Peer, true);
+                                                }
+                                                string[] b = Guid.NewGuid().ToString().Split('-');
+                                                string Key = "";
+                                                for (int i = 0; i < b.Length; i++)
+                                                {
+                                                    Key += b[i];
+                                                }
+                                                Peer.GetKey(Key);
+                                                NetBitStream stream = new NetBitStream();
+                                                Response bb = new Response(0, new Dictionary<byte, object>(), 0, Key);
+                                                stream.BeginWrite((ushort)MessageIdentifiers.ID.KEY);
+                                                stream.WriteResponse2(bb, "");
+                                                stream.EncodeHeader();
+                                                _server.Send(stream, packet._peerUDP);
+                                            }
+                                            break;
+                                        }
+                                    case (ushort)MessageIdentifiers.ID.CONNECTION_LOST:
+                                        {
+                                            Thread a = new Thread(new ParameterizedThreadStart(Finding));
+                                            a.IsBackground = true;
+                                            a.Start(new Find(packet, 1));
+                                            break;
+                                        }
+                                    case (ushort)MessageIdentifiers.ID.ID_CHAT:
+                                        {
+                                            Thread a = new Thread(new ParameterizedThreadStart(Finding));
+                                            a.IsBackground = true;
+                                            a.Start(new Find(packet, 2));
+                                            break;
+                                        }
+                                    case (ushort)MessageIdentifiers.ID.CHECKING:
+                                        {
+                                            Thread a = new Thread(new ParameterizedThreadStart(Finding));
+                                            a.IsBackground = true;
+                                            a.Start(new Find(packet, 3));
+                                            break;
+                                        }
+                                    case (ushort)MessageIdentifiers.ID.KEY:
+                                        {
+                                            lock (Link)
+                                            {
+                                                Link[(PeerUDPBase)ToPeerUDP[packet._peerUDP]] = true;
+                                            }
+                                            NetBitStream stream = new NetBitStream();
+                                            stream.BeginReadUDP2(packet);
+                                            stream.ReadResponse2(((PeerUDPBase)ToPeerUDP[packet._peerUDP]).Key);
+                                            stream.EncodeHeader();
+                                            try
+                                            {
+                                                if (Convert.ToInt32(stream.thing.Parameters[0]) < 10000)
+                                                {
+                                                    NetBitStream stream1 = new NetBitStream();
+                                                    Response bbbb = new Response(1, new Dictionary<byte, object>(), 0, "good");
+                                                    stream1.BeginWrite((ushort)MessageIdentifiers.ID.KEY);
+                                                    stream1.WriteResponse2(bbbb, "");
+                                                    stream1.EncodeHeader();
+
+                                                    _server.Send(stream1, packet._peerUDP);
+
+                                                    _socketList.Add(ToPeerUDP[packet._peerUDP]);
+                                                    NewLink.Remove((PeerUDPBase)ToPeerUDP[packet._peerUDP]);
+                                                }
+                                                else
+                                                {
+                                                    NetBitStream stream2 = new NetBitStream();
+                                                    Response bb = new Response(0, new Dictionary<byte, object>(), 0, ((PeerUDPBase)ToPeerUDP[packet._peerUDP]).Key);
+                                                    stream2.BeginWrite((ushort)MessageIdentifiers.ID.KEY);
+                                                    stream2.WriteResponse2(bb, "");
+                                                    stream2.EncodeHeader();
+                                                    _server.Send(stream2, packet._peerUDP);
+                                                }
+                                            }
+                                            catch (Exception)
+                                            {
+                                                NetBitStream stream2 = new NetBitStream();
+                                                Response bb = new Response(0, new Dictionary<byte, object>(), 0, ((PeerUDPBase)ToPeerUDP[packet._peerUDP]).Key);
+                                                stream2.BeginWrite((ushort)MessageIdentifiers.ID.KEY);
+                                                stream2.WriteResponse2(bb, "");
+                                                stream2.EncodeHeader();
+                                                _server.Send(stream2, packet._peerUDP);
+                                            }
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            // 錯誤
+                                            break;
+                                        }
+                                }
+                            }
+                            else
+                            {
+                                switch (msgid)
+                                {
+                                    case (ushort)MessageIdentifiers.ID.NEW_INCOMING_CONNECTION:
+                                        {
+                                            Clean = true;
+                                            GetMessage?.Invoke(1, packet._peerUDP.ToString());
+                                            PeerUDPBase Peer = AddPeerBase(packet._peerUDP, this._server);
+                                            if (Peer != null)
+                                            {
+                                                NewLink.Add(Peer);
+                                                ToPeerUDPIP.Add(packet._peerUDP.ToString(), Peer);
+                                                ToPeerUDP.Add(packet._peerUDP, Peer);
+                                                lock (Link)
+                                                {
+                                                    Link.Add(Peer, true);
+                                                }
+                                                string[] b = Guid.NewGuid().ToString().Split('-');
+                                                string Key = "";
+                                                for (int i = 0; i < b.Length; i++)
+                                                {
+                                                    Key += b[i];
+                                                }
+                                                Peer.GetKey(Key);
+                                                NetBitStream stream = new NetBitStream();
+                                                Response bb = new Response(0, new Dictionary<byte, object>(), 0, Key);
+                                                stream.BeginWrite((ushort)MessageIdentifiers.ID.KEY);
+                                                stream.WriteResponse2(bb, "");
+                                                stream.EncodeHeader();
+                                                _server.Send(stream, packet._peerUDP);
+                                            }
+                                            break;
+                                        }
+                                    case (ushort)MessageIdentifiers.ID.CONNECTION_LOST:
+                                        {
+                                            Finding(new Find(packet, 1));
+                                            break;
+                                        }
+                                    case (ushort)MessageIdentifiers.ID.ID_CHAT:
+                                        {
+                                            Finding(new Find(packet, 2));
+                                            break;
+                                        }
+                                    case (ushort)MessageIdentifiers.ID.CHECKING:
+                                        {
+                                            Finding(new Find(packet, 3));
+                                            break;
+                                        }
+                                    case (ushort)MessageIdentifiers.ID.KEY:
+                                        {
+                                            lock (Link)
+                                            {
+                                                Link[(PeerUDPBase)ToPeerUDP[packet._peerUDP]] = true;
+                                            }
+                                            NetBitStream stream = new NetBitStream();
+                                            stream.BeginReadUDP2(packet);
+                                            stream.ReadResponse2(((PeerUDPBase)ToPeerUDP[packet._peerUDP]).Key);
+                                            stream.EncodeHeader();
+                                            try
+                                            {
+                                                if (Convert.ToInt32(stream.thing.Parameters[0]) < 10000)
+                                                {
+                                                    NetBitStream stream1 = new NetBitStream();
+                                                    Response bbbb = new Response(1, new Dictionary<byte, object>(), 0, "good");
+                                                    stream1.BeginWrite((ushort)MessageIdentifiers.ID.KEY);
+                                                    stream1.WriteResponse2(bbbb, "");
+                                                    stream1.EncodeHeader();
+
+                                                    _server.Send(stream1, packet._peerUDP);
+
+                                                    _socketList.Add(ToPeerUDP[packet._peerUDP]);
+                                                    NewLink.Remove((PeerUDPBase)ToPeerUDP[packet._peerUDP]);
+                                                }
+                                                else
+                                                {
+                                                    NetBitStream stream2 = new NetBitStream();
+                                                    Response bb = new Response(0, new Dictionary<byte, object>(), 0, ((PeerUDPBase)ToPeerUDP[packet._peerUDP]).Key);
+                                                    stream2.BeginWrite((ushort)MessageIdentifiers.ID.KEY);
+                                                    stream2.WriteResponse2(bb, "");
+                                                    stream2.EncodeHeader();
+                                                    _server.Send(stream2, packet._peerUDP);
+                                                }
+                                            }
+                                            catch (Exception)
+                                            {
+                                                NetBitStream stream2 = new NetBitStream();
+                                                Response bb = new Response(0, new Dictionary<byte, object>(), 0, ((PeerUDPBase)ToPeerUDP[packet._peerUDP]).Key);
+                                                stream2.BeginWrite((ushort)MessageIdentifiers.ID.KEY);
+                                                stream2.WriteResponse2(bb, "");
+                                                stream2.EncodeHeader();
+                                                _server.Send(stream2, packet._peerUDP);
+                                            }
+                                            break;
+                                        }
+                                    default:
+                                        {
+                                            // 錯誤
+                                            break;
+                                        }
+                                }
+                            }
+                        }// end fore
+                        catch (Exception ee)
+                        {
+                            _server_GetMessage(ee.Message + " from UDPAppllicationUpdataFor");
+                        }
+                        packet = null;
+                    }// end while
+                }
+                catch (Exception e)
+                {
+                    _server_GetMessage(e.Message + " from UDPAppllicationUpdataWhile");
+
+                }
+            }
+        }
+        public virtual int GetPort()
         {
             return 10001;
         }
@@ -323,7 +616,7 @@ namespace UnityNetwork.Server
             ipv4Addresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
             return ipv4Addresses[0].ToString();
         }
-        protected void Finding(object _find)
+        public void Finding(object _find)
         {
             Find c = (Find)_find;
             try
@@ -335,14 +628,6 @@ namespace UnityNetwork.Server
                     {
                         case 1:
                             {
-                                if (c.packet._error == "")
-                                {
-                                    NetBitStream stream = new NetBitStream();
-                                    stream.BeginReadUDP2(c.packet);
-                                    stream.ReadResponse2("");
-                                    stream.EncodeHeader();
-                                    c.packet._error = stream.thing.DebugMessage;
-                                }
                                 GetMessage?.Invoke(2, a.socket.ToString() + "+" + c.packet._error);
                                 if (_server != null && a.socket != null)
                                 {
@@ -362,9 +647,9 @@ namespace UnityNetwork.Server
                                 {
                                     _server_GetMessage(a.socket.ToString() + " " + e.Message + "From OnDisconnect");
                                 }
-                                if (networkManager._socketList.Contains(a))
+                                if (_socketList.Contains(a))
                                 {
-                                    networkManager._socketList.Remove(a);
+                                    _socketList.Remove(a);
                                 }
                                 if (NewLink.Contains(a))
                                 {
@@ -384,6 +669,9 @@ namespace UnityNetwork.Server
                             {
                                 if (a.Key != "")
                                 {
+
+                                    NetBitStream stream = new NetBitStream();
+                                    stream.BeginReadUDP2(c.packet);
                                     try
                                     {
                                         a.OnOperationRequest(c.packet.response);
@@ -434,19 +722,19 @@ namespace UnityNetwork.Server
             }
         }
 
-        protected void check()
+        public void check()
         {
             try
             {
                 while (run)
                 {
-                    if (networkManager._socketList != null)
+                    if (_socketList != null)
                     {
-                        for (int i = 0; i < networkManager._socketList.Count; i++)
+                        for (int i = 0; i < _socketList.Count; i++)
                         {
-                            if (((PeerUDPBase)networkManager._socketList[i]) != null)
+                            if (((PeerUDPBase)_socketList[i]) != null)
                             {
-                                ((PeerUDPBase)networkManager._socketList[i]).check();
+                                ((PeerUDPBase)_socketList[i]).check();
                             }
                         }
                         Thread.Sleep(1000);
@@ -459,21 +747,21 @@ namespace UnityNetwork.Server
             }
         }
 
-        protected void check2()
+        public void check2()
         {
             try
             {
                 while (run)
                 {
-                    if (networkManager._socketList != null)
+                    if (_socketList != null)
                     {
-                        for (int i = 0; i < networkManager._socketList.Count; i++)
+                        for (int i = 0; i < _socketList.Count; i++)
                         {
                             lock (Link)
                             {
-                                if (Link.ContainsKey((PeerUDPBase)networkManager._socketList[i]))
+                                if (Link.ContainsKey((PeerUDPBase)_socketList[i]))
                                 {
-                                    Link[(PeerUDPBase)networkManager._socketList[i]] = false;
+                                    Link[(PeerUDPBase)_socketList[i]] = false;
                                 }
                             }
                         }
@@ -502,20 +790,20 @@ namespace UnityNetwork.Server
                         }
                         stopwatch.Stop();
                         stopwatch.Reset();
-                        for (int i = 0; i < networkManager._socketList.Count; i++)
+                        for (int i = 0; i < _socketList.Count; i++)
                         {
                             lock (Link)
                             {
-                                if (Link.ContainsKey((PeerUDPBase)networkManager._socketList[i]))
+                                if (Link.ContainsKey((PeerUDPBase)_socketList[i]))
                                 {
-                                    if (!Link[(PeerUDPBase)networkManager._socketList[i]])
+                                    if (!Link[(PeerUDPBase)_socketList[i]])
                                     {
-                                        _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應", ((PeerUDPBase)networkManager._socketList[i]).socket);
+                                        _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應", ((PeerUDPBase)_socketList[i]).socket);
                                     }
                                 }
                                 else
                                 {
-                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應", ((PeerUDPBase)networkManager._socketList[i]).socket);
+                                    _server.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, "超過5秒沒有回應", ((PeerUDPBase)_socketList[i]).socket);
                                 }
                             }
                         }
@@ -561,17 +849,17 @@ namespace UnityNetwork.Server
         }
 
 
-        protected virtual PeerUDPBase AddPeerBase(IPEndPoint _peer, NetUDPServer server)
+        public virtual PeerUDPBase AddPeerBase(IPEndPoint _peer, NetUDPServer server)
         {
             return new PeerUDPBase(_peer, server);
         }
 
-        protected virtual void TearDown()
+        public virtual void TearDown()
         {
 
         }
 
-        protected virtual void CleanUp()
+        public virtual void CleanUp()
         {
 
         }
@@ -583,23 +871,27 @@ namespace UnityNetwork.Server
 
         public void Disconnect()
         {
-            for (int i = 0; i < networkManager._socketList.Count; i++)
+            for (int i = 0; i < _socketList.Count; i++)
             {
-                ((PeerUDPBase)networkManager._socketList[i]).OffLine();
+                ((PeerUDPBase)_socketList[i]).OffLine();
             }
             Thread a = new Thread(new ThreadStart(exit));
             a.Start();
         }
-        protected void exit()
+        public void exit()
         {
             Thread.Sleep(4000);
             TearDown();
             _server.close();
             _server.GetMessage -= _server_GetMessage;
-            networkManager.Clear();
+            _socketList.Clear();
+            ToPeerUDP.Clear();
+            ToPeerUDPIP.Clear();
             Link.Clear();
             AuxiliaryServerList.Clear();
-            networkManager = null;
+            _socketList = null;
+            ToPeerUDPIP = null;
+            ToPeerUDP = null;
             Link = null;
             run = false;
             MessageTell.StopRead();

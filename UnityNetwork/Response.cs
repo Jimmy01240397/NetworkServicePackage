@@ -93,11 +93,6 @@ namespace UnityNetwork
             this.DebugMessage = "";
         }
 
-        public Response(string DebugMessage)
-        {
-            this.DebugMessage = DebugMessage;
-        }
-
         public byte[] AllToByte(string key, bool _Lock = false)
         {
             MemoryStream stream = new MemoryStream();
@@ -491,16 +486,7 @@ namespace UnityNetwork
             }
             else
             {
-                MemoryStream stream = new MemoryStream();
-                BinaryWriter writer = new BinaryWriter(stream);
-
-                writer.Write(false);
-                writer.Write(bs, 0, bs.Length);
-
-                writer.Close();
-                stream.Close();
-
-                encryptBytes = stream.ToArray();
+                encryptBytes = bs;
             }
             byte[] b;
             Compress(out b, encryptBytes);
@@ -523,21 +509,28 @@ namespace UnityNetwork
         static public byte[] UnLock(byte[] bs, string key)
         {
             byte[] _out;
-            MemoryStream stream = new MemoryStream(bs);
-            BinaryReader reader = new BinaryReader(stream);
-            bool _Lock = reader.ReadBoolean();
-            if (_Lock)
+            if (key != "")
             {
-                byte[] _key1 = reader.ReadBytes(16);
-                byte[] data = reader.ReadBytes(bs.Length - 17);
-                _out = AESEncryption.AESDecrypt(data, _key1, key);
+                MemoryStream stream = new MemoryStream(bs);
+                BinaryReader reader = new BinaryReader(stream);
+                bool _Lock = reader.ReadBoolean();
+                if (_Lock)
+                {
+                    byte[] _key1 = reader.ReadBytes(16);
+                    byte[] data = reader.ReadBytes(bs.Length - 17);
+                    _out = AESEncryption.AESDecrypt(data, _key1, key);
+                }
+                else
+                {
+                    _out = reader.ReadBytes(bs.Length - 1);
+                }
+                reader.Close();
+                stream.Close();
             }
             else
             {
-                _out = reader.ReadBytes(bs.Length - 1);
+                _out = bs;
             }
-            reader.Close();
-            stream.Close();
             return _out;
         }
 
@@ -807,11 +800,6 @@ namespace UnityNetwork
 
         public void ByteToAll2(byte[] b, int index, out int length, string key)
         {
-            if(b.Length <= index)
-            {
-                length = 0;
-                return;
-            }
             byte[] a;
             Decompress(b, index, out a, out length);
             byte[] bytes = UnLock(a, key);

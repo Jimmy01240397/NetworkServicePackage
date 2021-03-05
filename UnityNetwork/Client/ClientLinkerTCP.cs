@@ -1,49 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Threading;
+using UnityNetwork;
 
 namespace UnityNetwork.Client
 {
-    public class ClientLinkerTCP
+    public class ClientLinkerTCP : NetworkManager
     {
         NetTCPClient client;
         ClientListenTCP listener;
-
-
         bool getcheck = true;
         private int cantlink = 0;
 
-        private NetworkManager networkManager;
-
-        string _key = "";
-
-        public string key
-        {
-            get
-            {
-                return _key;
-            }
-            private set
-            {
-                _key = value;
-                client.key = value;
-            }
-        }
-
         object locker = new object();
 
-        private List<string> SendKey = new List<string>();
-        private Dictionary<string, NetBitStream> Sendthing = new Dictionary<string, NetBitStream>();
+        public List<string> SendKey = new List<string>();
+        public Dictionary<string, NetBitStream> Sendthing = new Dictionary<string, NetBitStream>();
 
-        public ClientLinkerTCP(ClientListenTCP a)
+        public string key { get; private set; } = "";
+        public ClientLinkerTCP(ClientListenTCP a) : base()
         {
             listener = (ClientListenTCP)a;
         }
-
-
         public bool Connect(string ip, int port)
         {
             if (client != null)
@@ -52,10 +32,8 @@ namespace UnityNetwork.Client
                 client.GetMessage -= OnGetMessage;
             }
             client = null;
-            networkManager = null;
-            SpinWait.SpinUntil(() => getcheck);
-            networkManager = new NetworkManager();
-            client = new NetTCPClient(networkManager);
+            while (!getcheck) { }
+            client = new NetTCPClient(this);
             client.Cheak += OnCheck;
             client.GetMessage += OnGetMessage;
             bool b = client.Connect(ip, port);
@@ -87,20 +65,6 @@ namespace UnityNetwork.Client
 
         public void Disconnect()
         {
-            try
-            {
-                NetBitStream stream = new NetBitStream();
-                Response b = new Response();
-                b.DebugMessage = "主動斷線";
-                stream.BeginWrite((ushort)MessageIdentifiers.ID.CONNECTION_LOST);
-                stream.WriteResponse2(b, "");
-                stream.EncodeHeader();
-                client.Send(stream);
-            }
-            catch (Exception)
-            {
-
-            }
             if (listener != null)
             {
                 listener.DebugReturn("Disconnect");
@@ -109,7 +73,6 @@ namespace UnityNetwork.Client
             client.GetMessage -= OnGetMessage;
             client.Disconnect(0);
             client = null;
-            networkManager = null;
             listener = null;
             key = "";
         }
@@ -178,7 +141,7 @@ namespace UnityNetwork.Client
             });
         }
 
-        public void NotImportask(byte Code, Dictionary<byte, Object> Parameter, bool _Lock = true)
+        public void NatImportask(byte Code, Dictionary<byte, Object> Parameter, bool _Lock = true)
         {
             ThreadPool.QueueUserWorkItem((aa) =>
             {
@@ -210,7 +173,7 @@ namespace UnityNetwork.Client
             });
         }
 
-        private void CheckKey()
+        public void CheckKey()
         {
             if (key != "")
             {
@@ -230,7 +193,7 @@ namespace UnityNetwork.Client
             }
         }
 
-        private void check()
+        public void check()
         {
             try
             {
@@ -245,6 +208,7 @@ namespace UnityNetwork.Client
                 if (client != null && listener != null)
                 {
                     cantlink++;
+                    listener.DebugReturn(e.Message + " cantlink:" + cantlink);
                     if (cantlink > 50)
                     {
                         client.PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.Message);
@@ -253,10 +217,10 @@ namespace UnityNetwork.Client
             }
         }
 
-        public void Update()
+        public override void Update()
         {
             NetPacket packet = null;
-            for (packet = networkManager.GetPacket(); packet != null; packet = networkManager.GetPacket())
+            for (packet = GetPacket(); packet != null; packet = GetPacket())
             {
                 try
                 {
@@ -287,8 +251,9 @@ namespace UnityNetwork.Client
                                 if (listener != null)
                                 {
                                     listener.DebugReturn(packet._error);
-                                    listener.OnStatusChanged((LinkCobe)1);
                                 }
+                                Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                thread2.Start(new Response(1, new Dictionary<byte, object>(), 1, ""));
                                 Disconnect();
                                 key = "";
                                 break;
@@ -297,20 +262,16 @@ namespace UnityNetwork.Client
                             {
                                 NetBitStream stream = new NetBitStream();
                                 stream.BeginReadTCP2(packet);
-                                if (listener != null)
-                                {
-                                    listener.OnOperationResponse(packet.response);
-                                }
+                                Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                thread2.Start(new Response(2, new Dictionary<byte, object>() { { 0, packet.response } }));
                                 break;
                             }
                         case (ushort)MessageIdentifiers.ID.ID_CHAT2:
                             {
                                 NetBitStream stream = new NetBitStream();
                                 stream.BeginReadTCP2(packet);
-                                if (listener != null)
-                                {
-                                    listener.OnEvent(packet.response);
-                                }
+                                Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                thread2.Start(new Response(3, new Dictionary<byte, object>() { { 0, packet.response } }));
                                 break;
                             }
                         case (ushort)MessageIdentifiers.ID.CONNECTION_ATTEMPT_FAILED:
@@ -318,17 +279,19 @@ namespace UnityNetwork.Client
                                 if (listener != null)
                                 {
                                     listener.DebugReturn(packet._error);
-                                    listener.OnStatusChanged((LinkCobe)2);
                                 }
+                                Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                thread2.Start(new Response(1, new Dictionary<byte, object>(), 2, ""));
                                 Disconnect();
                                 key = "";
                                 break;
                             }
                         case (ushort)MessageIdentifiers.ID.LOADING_NOW:
                             {
+                                Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                thread2.Start(new Response(1, new Dictionary<byte, object>(), 3, ""));
                                 if (listener != null)
                                 {
-                                    listener.OnStatusChanged((LinkCobe)3);
                                     listener.Loading(packet._error);
                                 }
                                 break;
@@ -346,7 +309,7 @@ namespace UnityNetwork.Client
                             {
                                 NetBitStream stream = new NetBitStream();
                                 stream.BeginReadTCP2(packet);
-                                stream.ReadResponse2("");
+                                    stream.ReadResponse2("");
                                 stream.EncodeHeader();
                                 if (stream.thing.Code == 0)
                                 {
@@ -355,10 +318,8 @@ namespace UnityNetwork.Client
                                 }
                                 else if (stream.thing.Code == 1)
                                 {
-                                    if (listener != null)
-                                    {
-                                        listener.OnStatusChanged((LinkCobe)0);
-                                    }
+                                    Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                    thread2.Start(new Response(1, new Dictionary<byte, object>(), 0, ""));
                                 }
                                 break;
                             }
@@ -369,7 +330,239 @@ namespace UnityNetwork.Client
                             }
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
+                {
+
+                }
+                packet = null;
+
+            }// end fore
+        }
+
+        public override void Update(bool thread)
+        {
+            NetPacket packet = null;
+            for (packet = GetPacket(); packet != null; packet = GetPacket())
+            {
+                try
+                {
+                    // 獲得訊息ID
+                    ushort msgid = 0;
+                    packet.TOID(out msgid);
+
+                    if (thread)
+                    {
+                        switch (msgid)
+                        {
+                            case (ushort)MessageIdentifiers.ID.CONNECTION_REQUEST_ACCEPTED:
+                                {
+                                    Thread aa = new Thread(new ThreadStart(Checker));
+                                    aa.Start();
+                                    Thread a = new Thread(new ThreadStart(check2));
+                                    a.Start();
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.CONNECTION_LOST:
+                                {
+                                    if (packet._error == "")
+                                    {
+                                        NetBitStream stream = new NetBitStream();
+                                        stream.BeginReadTCP2(packet);
+                                            stream.ReadResponse2("");
+                                        stream.EncodeHeader();
+                                        packet._error = stream.thing.DebugMessage;
+                                    }
+                                    if (listener != null)
+                                    {
+                                        listener.DebugReturn(packet._error);
+                                    }
+                                    Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                    thread2.Start(new Response(1, new Dictionary<byte, object>(), 1, ""));
+                                    Disconnect();
+                                    key = "";
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.ID_CHAT:
+                                {
+                                    NetBitStream stream = new NetBitStream();
+                                    stream.BeginReadTCP2(packet);
+                                    Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                    thread2.Start(new Response(2, new Dictionary<byte, object>() { { 0, packet.response } }));
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.ID_CHAT2:
+                                {
+                                    NetBitStream stream = new NetBitStream();
+                                    stream.BeginReadTCP2(packet);
+                                    Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                    thread2.Start(new Response(3, new Dictionary<byte, object>() { { 0, packet.response } }));
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.CONNECTION_ATTEMPT_FAILED:
+                                {
+                                    if (listener != null)
+                                    {
+                                        listener.DebugReturn(packet._error);
+                                    }
+                                    Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                    thread2.Start(new Response(1, new Dictionary<byte, object>(), 2, ""));
+                                    Disconnect();
+                                    key = "";
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.LOADING_NOW:
+                                {
+                                    Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                    thread2.Start(new Response(1, new Dictionary<byte, object>(), 3, ""));
+                                    if (listener != null)
+                                    {
+                                        listener.Loading(packet._error);
+                                    }
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.CHECKING:
+                                {
+                                    lock (locker)
+                                    {
+                                        getcheck = true;
+                                    }
+                                    check();
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.KEY:
+                                {
+                                    NetBitStream stream = new NetBitStream();
+                                    stream.BeginReadTCP2(packet);
+                                        stream.ReadResponse2("");
+                                    stream.EncodeHeader();
+                                    if (stream.thing.Code == 0)
+                                    {
+                                        key = stream.thing.DebugMessage;
+                                        CheckKey();
+                                    }
+                                    else if (stream.thing.Code == 1)
+                                    {
+                                        Thread thread2 = new Thread(new ParameterizedThreadStart(Doing));
+                                        thread2.Start(new Response(1, new Dictionary<byte, object>(), 0, ""));
+                                    }
+                                    break;
+                                }
+                            default:
+                                {
+                                    // 錯誤
+                                    break;
+                                }
+                        }
+                    }
+                    else
+                    {
+                        switch (msgid)
+                        {
+                            case (ushort)MessageIdentifiers.ID.CONNECTION_REQUEST_ACCEPTED:
+                                {
+                                    Thread aa = new Thread(new ThreadStart(Checker));
+                                    aa.Start();
+                                    Thread a = new Thread(new ThreadStart(check2));
+                                    a.Start();
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.CONNECTION_LOST:
+                                {
+                                    if (packet._error == "")
+                                    {
+                                        NetBitStream stream = new NetBitStream();
+                                        stream.BeginReadTCP2(packet);
+                                            stream.ReadResponse2("");
+                                        stream.EncodeHeader();
+                                        packet._error = stream.thing.DebugMessage;
+                                    }
+                                    if (listener != null)
+                                    {
+                                        listener.DebugReturn(packet._error);
+                                        listener.OnStatusChanged((LinkCobe)1);
+                                    }
+                                    Disconnect();
+                                    key = "";
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.ID_CHAT:
+                                {
+                                    NetBitStream stream = new NetBitStream();
+                                    stream.BeginReadTCP2(packet);
+                                    if (listener != null)
+                                    {
+                                        listener.OnOperationResponse(packet.response);
+                                    }
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.ID_CHAT2:
+                                {
+                                    NetBitStream stream = new NetBitStream();
+                                    stream.BeginReadTCP2(packet);
+                                    if (listener != null)
+                                    {
+                                        listener.OnEvent(packet.response);
+                                    }
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.CONNECTION_ATTEMPT_FAILED:
+                                {
+                                    if (listener != null)
+                                    {
+                                        listener.DebugReturn(packet._error);
+                                        listener.OnStatusChanged((LinkCobe)2);
+                                    }
+                                    Disconnect();
+                                    key = "";
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.LOADING_NOW:
+                                {
+                                    if (listener != null)
+                                    {
+                                        listener.OnStatusChanged((LinkCobe)3);
+                                        listener.Loading(packet._error);
+                                    }
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.CHECKING:
+                                {
+                                    lock (locker)
+                                    {
+                                        getcheck = true;
+                                    }
+                                    check();
+                                    break;
+                                }
+                            case (ushort)MessageIdentifiers.ID.KEY:
+                                {
+                                    NetBitStream stream = new NetBitStream();
+                                    stream.BeginReadTCP2(packet);
+                                        stream.ReadResponse2("");
+                                    stream.EncodeHeader();
+                                    if (stream.thing.Code == 0)
+                                    {
+                                        key = stream.thing.DebugMessage;
+                                        CheckKey();
+                                    }
+                                    else if (stream.thing.Code == 1)
+                                    {
+                                        if (listener != null)
+                                        {
+                                            listener.OnStatusChanged((LinkCobe)0);
+                                        }
+                                    }
+                                    break;
+                                }
+                            default:
+                                {
+                                    // 錯誤
+                                    break;
+                                }
+                        }
+                    }
+                }
+                catch(Exception e)
                 {
                     if (listener != null)
                     {
@@ -381,7 +574,7 @@ namespace UnityNetwork.Client
             }// end fore
         }
 
-        private void Doing(object thing)
+        public void Doing(object thing)
         {
             Response response = (Response)thing;
             if (listener != null)
