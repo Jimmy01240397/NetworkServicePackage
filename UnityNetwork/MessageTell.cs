@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if EnableMessageTell
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Messaging;
@@ -136,3 +138,5 @@ namespace UnityNetwork
         }
     }
 }
+
+#endif

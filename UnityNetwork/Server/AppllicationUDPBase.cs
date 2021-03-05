@@ -602,7 +602,9 @@ namespace UnityNetwork.Server
             networkManager = null;
             Link = null;
             run = false;
+#if EnableMessageTell
             MessageTell.StopRead();
+#endif
             NetThread = null;
             _server = null;
             try

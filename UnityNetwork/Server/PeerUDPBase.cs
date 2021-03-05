@@ -361,6 +361,7 @@ namespace UnityNetwork.Server
             });
         }
 
+#if EnableMessageTell
         public void SendMessageNotImportReply(byte Code, Dictionary<byte, Object> Parameter, short ReturnCode, string DebugMessage, bool _Lock = true)
         {
             try
@@ -467,6 +468,7 @@ namespace UnityNetwork.Server
                 }
             }
         }
+#endif
 
         public void GetKey(string key)
         {
