@@ -46,6 +46,7 @@
     <Compile Include="MessageTell.cs" />
     <Compile Include="NetUDPClient.cs" />
     <Compile Include="NetUDPServer.cs" />
+    <Compile Include="SerializationData.cs" />
     <Compile Include="Server\AppllicationTCPBase.cs" />
     <Compile Include="MessageIdentifiers.cs" />
     <Compile Include="NetBitStream.cs" />
