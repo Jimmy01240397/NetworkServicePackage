@@ -291,7 +291,7 @@ namespace UnityNetwork.Client
             }
         }
 
-        public void P2PConnecting(string IPPort, Action callback)
+        private void P2PConnecting(string IPPort, Action callback)
         {
             try
             {
