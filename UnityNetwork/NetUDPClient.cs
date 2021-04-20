@@ -29,6 +29,14 @@ namespace UnityNetwork
 
         object SendLock = new object();
 
+        public IPEndPoint RemoteIP
+        {
+            get
+            {
+                return ipe;
+            }
+        }
+
         public IPEndPoint MyIP
         {
             get
@@ -55,7 +63,7 @@ namespace UnityNetwork
 
             try
             {
-                ipe = new IPEndPoint(IPAddress.Parse(address), remotePort);
+                ipe = new IPEndPoint(Array.FindAll(Dns.GetHostEntry(address).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork)[0], remotePort);
                 PushPacket((ushort)MessageIdentifiers.ID.LOADING_NOW, "正在嘗試連線IP:" + ipe.ToString());
                 // 開始連接
 
@@ -188,6 +196,30 @@ namespace UnityNetwork
             return false;
         }
 
+        public bool SendSetTTL(NetBitStream bts, IPEndPoint iPEndPoint, short ttl)
+        {
+            if (SendLock != null)
+            {
+                lock (SendLock)
+                {
+                    try
+                    {
+                        short dettl = _socket.Ttl;
+                        _socket.Ttl = ttl;
+                        bool ans = _socket.Send(bts.BYTES, bts.Length, iPEndPoint) != 0;
+                        _socket.Ttl = dettl;
+                        return ans;
+                        //ns.Write(bts.BYTES, 0, bts.Length);
+                    }
+                    catch (System.Exception e)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return false;
+        }
+
         public void SetAuxiliaryServer(NetBitStream bts, int Port)
         {
             if (SendLock != null)
@@ -263,7 +295,7 @@ namespace UnityNetwork
                     stream2.ReadResponse2(key);
                     stream2.EncodeHeader();
                     packet.response = stream2.thing;
-                    if (!(msgid == (ushort)MessageIdentifiers.ID.P2P_CONNECTION && !P2PAllowList.Contains(new IPEndPoint(IPAddress.Parse(packet.response.Parameters[0].ToString().Split(':')[0]), Convert.ToInt32(packet.response.Parameters[0].ToString().Split(':')[1])))))
+                    if (!(msgid == (ushort)MessageIdentifiers.ID.P2P_CONNECTION && !P2PAllowList.Contains(TraceRoute.IPEndPointParse(packet.response.Parameters[0].ToString()))))
                     {
                         _netMgr.AddPacket(packetkey, packet);
                     }

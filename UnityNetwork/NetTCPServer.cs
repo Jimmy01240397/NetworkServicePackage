@@ -33,37 +33,21 @@ namespace UnityNetwork
         public bool CreateTcpServer(string ip, int listenPort, out string a)
         {
             _port = listenPort;
-
-
-            int i = 0;
             a = "";
-            foreach (IPAddress address in Dns.GetHostEntry(ip).AddressList)
+            try
             {
-                try
-                {
 
-                    IPEndPoint ipe = new IPEndPoint(IPAddress.Any, _port);
-                    a += ipe.Address + ":" + ipe.Port + " ";
-                    _listener = new TcpListener(ipe);
-                    _listener.Start(5000);
+                IPEndPoint ipe = new IPEndPoint(IPAddress.Any, _port);
+                a += ipe.ToString() + " ";
+                _listener = new TcpListener(ipe);
+                _listener.Start(5000);
 
-                    _listener.BeginAcceptTcpClient(new System.AsyncCallback(ListenTcpClient), _listener);
+                _listener.BeginAcceptTcpClient(new System.AsyncCallback(ListenTcpClient), _listener);
 
-                    ip = Dns.GetHostAddresses(ip)[0].ToString() + ":" + _port;
-                    i = 1;
-                    break;
-
-                }
-                catch (System.Exception)
-                {
-
-                }
-            }
-            if (i == 1)
-            {
+                ip = Dns.GetHostAddresses(ip)[0].ToString() + ":" + _port;
                 a = ip;
             }
-            else
+            catch (System.Exception)
             {
                 a += "無法建立伺服器";
                 return false;

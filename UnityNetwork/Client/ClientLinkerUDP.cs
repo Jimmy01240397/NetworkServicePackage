@@ -11,6 +11,15 @@ namespace UnityNetwork.Client
 {
     public class ClientLinkerUDP
     {
+        public enum P2PCode
+        {
+            CallConnect = 0,
+            TestCall,
+            CallConnectComplete,
+            ConnectCompleteWithNAT,
+            NATP2PTell
+        }
+
         NetUDPClient client;
         ClientListenUDP listener;
 
@@ -26,7 +35,12 @@ namespace UnityNetwork.Client
 
         private bool enableP2P = false;
 
-        string MyIPPort = "";
+        string MyPublicIPPort = "";
+
+        Dictionary<string, Dictionary<string, object[]>> TestP2PCallConnectEnd = new Dictionary<string, Dictionary<string, object[]>>();
+        Dictionary<string, List<string>> TestP2PCallConnectIPList = new Dictionary<string, List<string>>();
+
+        List<IPEndPoint> OnP2PLink = new List<IPEndPoint>();
 
         public bool EnableP2P
         {
@@ -272,18 +286,26 @@ namespace UnityNetwork.Client
             });
         }
 
+        private string[] GetAllMyIP()
+        {
+            IPAddress[] ipv4Addresses;
+            ipv4Addresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
+            string[] xx = new string[ipv4Addresses.Length];
+            for (int i = 0; i < xx.Length; i++)
+            {
+                xx[i] = new IPEndPoint(ipv4Addresses[i], MyIP.Port).ToString();
+            }
+            return xx;
+        }
+
         public void StartP2PConnect(IPEndPoint IPPort)
         {
             if (enableP2P)
             {
-                IPAddress[] ipv4Addresses;
-                ipv4Addresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
-                string[] xx = new string[ipv4Addresses.Length];
-                for(int i = 0; i < xx.Length; i++)
+                if (!OnP2PLink.Contains(IPPort))
                 {
-                    xx[i] = ipv4Addresses[i].ToString() + ":" + MyIP.ToString().Split(':')[1];
+                    client.P2PConnectServer(new Response((byte)P2PCode.CallConnect, new Dictionary<byte, Object>() { { 0, IPPort.ToString() }, { 1, GetAllMyIP() }, { 3, true } }));
                 }
-                client.P2PConnectServer(new Response(0, new Dictionary<byte, Object>() { { 0, IPPort.ToString() }, { 1, xx } }));
             }
             else
             {
@@ -296,11 +318,11 @@ namespace UnityNetwork.Client
             try
             {
                 NetBitStream stream = new NetBitStream();
-                Response b = new Response(0, new Dictionary<byte, Object>() { { 0, MyIPPort } });
+                Response b = new Response(0, new Dictionary<byte, object>() { { 0, MyPublicIPPort } });
                 stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CONNECTION);
                 stream.WriteResponse2(b, key, false);
                 stream.EncodeHeader();
-                if (!client.Send(stream, new IPEndPoint(IPAddress.Parse(IPPort.Split(':')[0]), Convert.ToInt32(IPPort.Split(':')[1]))))
+                if (!client.Send(stream, TraceRoute.IPEndPointParse(IPPort)))
                 {
                     callback();
                 }
@@ -309,6 +331,7 @@ namespace UnityNetwork.Client
                     new Thread(() =>
                     {
                         Thread.Sleep(500);
+                        //listener.DebugReturn(IPPort.ToString());
                         if (!ToPeerP2PIP.ContainsKey(IPPort))
                         {
                             callback();
@@ -400,6 +423,210 @@ namespace UnityNetwork.Client
                     }
                 }
             }
+        }
+
+        private bool checkIP(IPAddress ip, string[] ipnetmask)
+        {
+            bool data = false;
+            for (int i = 0; i < ipnetmask.Length; i++)
+            {
+                data = data || ip.IsInSubnet(ipnetmask[i]);
+            }
+            return data;
+        }
+
+        private object[] TestP2PCallConnect(string[] IPs, IPEndPoint publicIP)
+        {
+            string[] MyIPs = GetAllMyIP();
+
+            #region 判斷自己或對方是否只有PublicIP
+            bool onlyPublicIP = true;
+            if (IPs.Length > 0)
+            {
+                for (int i = 0; i < MyIPs.Length; i++)
+                {
+                    IPEndPoint endPoint = TraceRoute.IPEndPointParse(MyIPs[i]);
+                    if (checkIP(endPoint.Address, new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" }))
+                    {
+                        onlyPublicIP = false;
+                        break;
+                    }
+                }
+            }
+            #endregion
+
+            #region 新增TestP2PCallConnect要連線的IP紀錄
+            TestP2PCallConnectEnd.Add(publicIP.ToString(), new Dictionary<string, object[]>());
+            TestP2PCallConnectIPList.Add(publicIP.ToString(), new List<string>());
+            #endregion
+
+            #region 非同步測試函式組
+            Func<Socket, IPEndPoint, short, int, KeyValuePair<string, object[]>> runtest = (socket, ip, ttl, port) =>
+            {
+                short dettl = socket.Ttl;
+                socket.Ttl = ttl;
+                byte[] data = new byte[6];
+                socket.SendTo(data, ip);
+                socket.Ttl = dettl;
+
+                EndPoint retip = new IPEndPoint(IPAddress.Any, 0);
+                socket.ReceiveTimeout = 2000;
+
+                bool isprivate = checkIP(ip.Address, new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" });
+
+                client.P2PConnectServer(new Response((byte)P2PCode.TestCall, new Dictionary<byte, object>() { { 0, publicIP.ToString() }, { 1, isprivate ? MyIPs : new string[] { MyPublicIPPort } }, { 3, port } }));
+
+                KeyValuePair<string, object[]> ans;
+                try
+                {
+                    data = new byte[1024];
+                    int len = socket.ReceiveFrom(data, ref retip);
+                    byte[] outdata = new byte[len];
+                    Array.Copy(data, outdata, len);
+                    NetBitStream stream = new NetBitStream();
+                    stream.BYTES = outdata;
+                    stream.ReadUShort(out ushort num);
+                    stream.ReadResponse2("");
+                    ans = new KeyValuePair<string, object[]>(socket.LocalEndPoint.ToString(), new object[] { ip, ttl, true, stream.thing.Parameters[0] });
+                }
+                catch (SocketException)
+                {
+                    ans = new KeyValuePair<string, object[]>(socket.LocalEndPoint.ToString(), new object[] { ip, ttl, false });
+                }
+                /*(new Thread(() =>
+                {
+                    listener.DebugReturn("Testing");
+                    Stopwatch stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                    while(stopwatch.ElapsedMilliseconds < 5000)
+                    {
+                        try
+                        {
+                            socket.ReceiveFrom(data, ref retip);
+                            listener.DebugReturn("Has data " + retip.ToString());
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+                    stopwatch.Stop();
+                    stopwatch.Reset();
+                    listener.DebugReturn("Testing End");*/
+                    socket.Close();
+                //})).Start();
+                return ans;
+            };
+
+            void callback(IAsyncResult ar)
+            {
+                object state = ar.AsyncState;
+                KeyValuePair<string, object[]> ans = runtest.EndInvoke(ar);
+                lock (TestP2PCallConnectEnd)
+                {
+                    TestP2PCallConnectEnd[publicIP.ToString()].Add(ans.Key, ans.Value);
+                }
+            }
+            #endregion
+
+            #region 雙方皆有私網IP時的測試
+            if (!onlyPublicIP)
+            {
+                foreach (string ip in IPs)
+                {
+                    IPEndPoint endPoint = TraceRoute.IPEndPointParse(ip);
+                    if (!checkIP(endPoint.Address, new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" })) continue;
+
+                    Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                    socket.Bind(new IPEndPoint(IPAddress.Any, 0));
+                    TestP2PCallConnectIPList[publicIP.ToString()].Add(socket.LocalEndPoint.ToString());
+                    runtest.BeginInvoke(socket, endPoint, 64, ((IPEndPoint)socket.LocalEndPoint).Port, callback, null);
+                }
+            }
+            #endregion
+
+            #region 公網IP與TTL測試
+
+            void testpublicip(short ttl)
+            {
+                //listener.DebugReturn(publicenumer[i].ToString());
+                #region 建立測試用Socket
+                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                socket.Bind(new IPEndPoint(IPAddress.Any, 0));
+                TestP2PCallConnectIPList[publicIP.ToString()].Add(socket.LocalEndPoint.ToString());
+                #endregion
+
+                #region 取得外網對內PORT
+                NetBitStream netBitStream = new NetBitStream();
+                netBitStream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_GET_PUBLIC_ENDPOINT);
+                netBitStream.EncodeHeader();
+                socket.SendTo(netBitStream.BYTES, client.RemoteIP);
+                socket.ReceiveTimeout = 500;
+                try
+                {
+                    byte[] data = new byte[1024];
+                    EndPoint retip = new IPEndPoint(IPAddress.Any, 0);
+                    int len = socket.ReceiveFrom(data, ref retip);
+                    byte[] outdata = new byte[len];
+                    Array.Copy(data, outdata, len);
+                    NetBitStream stream = new NetBitStream();
+                    stream.BYTES = outdata;
+                    stream.ReadUShort(out ushort num);
+                    stream.ReadResponse2("");
+                    IPEndPoint GetIPPORT = TraceRoute.IPEndPointParse(stream.thing.Parameters[0].ToString());
+                    #endregion
+
+                    runtest.BeginInvoke(socket, publicIP, ttl, GetIPPORT.Port, callback, null);
+
+                #region 取得失敗直接結束
+                }
+                catch (SocketException)
+                {
+                    TestP2PCallConnectEnd[publicIP.ToString()].Add(socket.LocalEndPoint.ToString(), new object[] { publicIP, ttl, false });
+                }
+                #endregion
+            }
+            List<IPAddress> publicenumer = TraceRoute.GetTraceRoute(publicIP.Address.ToString(), 50);
+            for (int i = 0; i < publicenumer.Count; i++)
+            {
+                if (publicenumer[i] != null && !checkIP(publicenumer[i], new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" }))
+                {
+                    testpublicip((short)(i + 1));
+                }
+            }
+            testpublicip(64);
+            #endregion
+
+            #region 等全部測試完成後輸出測試結果
+            Thread.Sleep(500);
+
+            bool canlink = false;
+            string linkip = "";
+            for (int i = 0; i < TestP2PCallConnectIPList[publicIP.ToString()].Count; i++)
+            {
+                SpinWait.SpinUntil(() => TestP2PCallConnectEnd[publicIP.ToString()].ContainsKey(TestP2PCallConnectIPList[publicIP.ToString()][i]));
+                lock (TestP2PCallConnectEnd)
+                {
+                    if (!canlink && (bool)TestP2PCallConnectEnd[publicIP.ToString()][TestP2PCallConnectIPList[publicIP.ToString()][i]][2])
+                    {
+                        canlink = true;
+                        linkip = TestP2PCallConnectIPList[publicIP.ToString()][i];
+                    }
+                }
+            }
+            object[] ansdata = null;
+            lock (TestP2PCallConnectEnd)
+            {
+                if (canlink)
+                {
+                    ansdata = TestP2PCallConnectEnd[publicIP.ToString()][linkip];
+                }
+
+                TestP2PCallConnectEnd.Remove(publicIP.ToString());
+                TestP2PCallConnectIPList.Remove(publicIP.ToString());
+            }
+            return ansdata;
+            #endregion
         }
 
         public void Update()
@@ -517,146 +744,134 @@ namespace UnityNetwork.Client
                             }
                         case (ushort)MessageIdentifiers.ID.P2P_SERVER_CALL:
                             {
-                                switch (packet.response.Code)
+                                const byte RemotePublicIP = 0;
+                                const byte Data = 1;
+                                const byte LocalPublicIP = 2;
+
+                                switch ((P2PCode)packet.response.Code)
                                 {
-                                    case 0:
+                                    case P2PCode.CallConnect:
                                         {
-                                            MyIPPort = packet.response.Parameters[2].ToString();
+                                            MyPublicIPPort = packet.response.Parameters[LocalPublicIP].ToString();
 
-                                            IPAddress[] ipv4Addresses;
-                                            ipv4Addresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
-                                            string[] xx = new string[ipv4Addresses.Length];
-                                            for (int i = 0; i < xx.Length; i++)
+                                            IPEndPoint iPEndPoint = TraceRoute.IPEndPointParse(packet.response.Parameters[RemotePublicIP].ToString());
+
+                                            if (!OnP2PLink.Contains(iPEndPoint))
                                             {
-                                                xx[i] = ipv4Addresses[i].ToString() + ":" + MyIP.ToString().Split(':')[1];
+                                                OnP2PLink.Add(iPEndPoint);
                                             }
 
-                                            NetBitStream stream = new NetBitStream();
-                                            stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CHECKING);
-                                            stream.EncodeHeader();
-
-                                            string[] IP = packet.response.Parameters[0].ToString().Split(':');
-                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
-                                            client.P2PAllowList.Add(iPEndPoint);
-
-                                            string[] IPs = (string[])packet.response.Parameters[1];
-                                            foreach (string ip in IPs)
+                                            if (!client.P2PAllowList.Contains(iPEndPoint))
                                             {
-                                                IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(ip.Split(':')[0]), Convert.ToInt32(ip.Split(':')[1]));
-                                                client.Send(stream, endPoint);
-                                            }
-                                            client.Send(stream, iPEndPoint);
-
-                                            packet.response.Parameters.Remove(2);
-                                            packet.response.Parameters[1] = xx;
-
-                                            client.P2PConnectServer(new Response(1, packet.response.Parameters));
-                                            break;
-                                        }
-                                    case 1:
-                                        {
-
-                                            MyIPPort = packet.response.Parameters[2].ToString();
-                                            string a = packet.response.Parameters[0].ToString();
-
-                                            IPAddress[] ipv4Addresses;
-                                            ipv4Addresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, aa => aa.AddressFamily == AddressFamily.InterNetwork);
-                                            string[] xx = new string[ipv4Addresses.Length];
-                                            for (int i = 0; i < xx.Length; i++)
-                                            {
-                                                xx[i] = ipv4Addresses[i].ToString() + ":" + MyIP.ToString().Split(':')[1];
+                                                client.P2PAllowList.Add(iPEndPoint);
                                             }
 
-                                            NetBitStream stream = new NetBitStream();
-                                            stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CHECKING);
-                                            stream.EncodeHeader();
-
-                                            string[] IP = packet.response.Parameters[0].ToString().Split(':');
-                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
-                                            client.P2PAllowList.Add(iPEndPoint);
-
-                                            string[] IPs = (string[])packet.response.Parameters[1];
-                                            void doing(int i)
+                                            string[] IPs = (string[])packet.response.Parameters[Data];
+                                            Func<string[], IPEndPoint, object[]> testfunc = TestP2PCallConnect;
+                                            testfunc.BeginInvoke(IPs, iPEndPoint, (ar) =>
                                             {
-                                                P2PConnecting(IPs[i], () =>
+                                                NetPacket _packet = (NetPacket)ar.AsyncState;
+                                                object[] ans = testfunc.EndInvoke(ar);
+                                                if(ans != null)
                                                 {
-                                                    i++;
-                                                    if (i < IPs.Length)
-                                                    {
-                                                        doing(i);
-                                                    }
-                                                    else
-                                                    {
-                                                        P2PConnecting(a, () =>
-                                                        {
-                                                            client.P2PConnectServer(new Response(2, new Dictionary<byte, object>() { { 0, a }, { 1, xx } }));
-                                                        });
-                                                    }
-                                                });
-                                            }
-
-                                            foreach (string ip in IPs)
-                                            {
-                                                IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse(ip.Split(':')[0]), Convert.ToInt32(ip.Split(':')[1]));
-                                                client.Send(stream, endPoint);
-                                            }
-                                            client.Send(stream, iPEndPoint);
-                                            doing(0);
-                                            break;
-                                        }
-                                    case 2:
-                                        {
-                                            string[] IPs = (string[])packet.response.Parameters[1];
-                                            MyIPPort = packet.response.Parameters[2].ToString();
-                                            string a = packet.response.Parameters[0].ToString();
-
-                                            void doing(int i)
-                                            {
-                                                P2PConnecting(IPs[i], () =>
+                                                    NetBitStream stream = new NetBitStream();
+                                                    stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CHECKING);
+                                                    stream.EncodeHeader();
+                                                    client.SendSetTTL(stream, (IPEndPoint)ans[0], (short)ans[1]);
+                                                    client.P2PConnectServer(new Response((byte)P2PCode.CallConnectComplete, new Dictionary<byte, object>() { { RemotePublicIP, iPEndPoint.ToString() }, { Data, ans[3] } }));
+                                                }
+                                                else if((bool)_packet.response.Parameters[3])
                                                 {
-                                                    i++;
-                                                    if (i < IPs.Length)
-                                                    {
-                                                        doing(i);
-                                                    }
-                                                    else
-                                                    {
-                                                        P2PConnecting(a, () =>
-                                                        {
-                                                            client.P2PConnectServer(new Response(3, new Dictionary<byte, object>() { { 0, a } }));
-                                                            string[] IP = a.Split(':');
-                                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
-                                                            PeerForP2P peerForP2P = listener.P2PAddPeer(iPEndPoint, client, false);
-                                                            networkManager.ToPeerUDP.Add(iPEndPoint, peerForP2P);
-                                                            networkManager.ToPeerUDPIP.Add(a, peerForP2P);
-                                                            networkManager._socketList.Add(peerForP2P);
-                                                            Link.Add(peerForP2P, true);
-                                                            peerForP2P.OnLink();
-                                                        });
-                                                    }
-                                                });
-                                            }
-                                            doing(0);
+                                                    client.P2PConnectServer(new Response((byte)P2PCode.CallConnect, new Dictionary<byte, object>() { { RemotePublicIP, iPEndPoint.ToString() }, { Data, GetAllMyIP() }, { 3, false } }));
+                                                }
+                                                else
+                                                {
+                                                    client.P2PConnectServer(new Response((byte)P2PCode.ConnectCompleteWithNAT, new Dictionary<byte, object>() { { RemotePublicIP, iPEndPoint.ToString() } }));
+                                                    PeerForP2P peerForP2P = listener.P2PAddPeer(iPEndPoint, iPEndPoint, client, false);
+                                                    networkManager.ToPeerUDP.Add(iPEndPoint, peerForP2P);
+                                                    networkManager.ToPeerUDPIP.Add(iPEndPoint.ToString(), peerForP2P);
+                                                    networkManager._socketList.Add(peerForP2P);
+                                                    Link.Add(peerForP2P, true);
+                                                    peerForP2P.OnLink();
+                                                }
+                                            }, packet);
                                             break;
                                         }
-                                    case 3:
+                                    case P2PCode.TestCall:
                                         {
-                                            string[] IP = packet.response.Parameters[0].ToString().Split(':');
-                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
-                                            PeerForP2P peerForP2P = listener.P2PAddPeer(iPEndPoint, client, false);
+                                            MyPublicIPPort = packet.response.Parameters[LocalPublicIP].ToString(); 
+                                            IPEndPoint iPEndPoint = TraceRoute.IPEndPointParse(packet.response.Parameters[RemotePublicIP].ToString());
+
+                                            if (!OnP2PLink.Contains(iPEndPoint))
+                                            {
+                                                OnP2PLink.Add(iPEndPoint);
+                                            }
+
+                                            if (!client.P2PAllowList.Contains(iPEndPoint))
+                                            {
+                                                client.P2PAllowList.Add(iPEndPoint);
+                                            }
+                                            string[] IPs = (string[])packet.response.Parameters[Data];
+
+                                            void sendtest(string ip)
+                                            {
+                                                NetBitStream stream = new NetBitStream();
+                                                stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CHECKING);
+                                                Response response = new Response(0, new Dictionary<byte, object>() { { 0, ip } });
+                                                stream.WriteResponse2(response, key, false);
+                                                stream.EncodeHeader();
+                                                client.Send(stream, TraceRoute.IPEndPointParse(TraceRoute.IPEndPointParse(ip).Address.ToString() + ":" + packet.response.Parameters[3].ToString()));
+                                            }
+
+                                            if (IPs.Length == 0)
+                                            {
+                                                sendtest(iPEndPoint.ToString());
+                                            }
+                                            else
+                                            {
+                                                for (int i = 0; i < IPs.Length; i++)
+                                                {
+                                                    sendtest(IPs[i]);
+                                                    //listener.DebugReturn("Send to : " + TraceRoute.IPEndPointParse(TraceRoute.IPEndPointParse(IPs[i]).Address.ToString() + ":" + packet.response.Parameters[3].ToString()));
+                                                }
+                                                //check(new int[0]);
+                                            }
+                                            break;
+                                        }
+                                    case P2PCode.CallConnectComplete:
+                                        {
+                                            MyPublicIPPort = packet.response.Parameters[LocalPublicIP].ToString();
+                                            IPEndPoint iPEndPoint = TraceRoute.IPEndPointParse(packet.response.Parameters[RemotePublicIP].ToString());
+                                            string ip = packet.response.Parameters[Data].ToString();
+
+                                            P2PConnecting(ip, () =>
+                                            {
+                                                client.P2PConnectServer(new Response((byte)P2PCode.ConnectCompleteWithNAT, new Dictionary<byte, object>() { { RemotePublicIP, iPEndPoint.ToString() } }));
+                                                PeerForP2P peerForP2P = listener.P2PAddPeer(iPEndPoint, iPEndPoint, client, false);
+                                                networkManager.ToPeerUDP.Add(iPEndPoint, peerForP2P);
+                                                networkManager.ToPeerUDPIP.Add(iPEndPoint.ToString(), peerForP2P);
+                                                networkManager._socketList.Add(peerForP2P);
+                                                Link.Add(peerForP2P, true);
+                                                peerForP2P.OnLink();
+                                            });
+                                            break;
+                                        }
+                                    case P2PCode.ConnectCompleteWithNAT:
+                                        {
+                                            IPEndPoint iPEndPoint = TraceRoute.IPEndPointParse(packet.response.Parameters[RemotePublicIP].ToString());
+                                            PeerForP2P peerForP2P = listener.P2PAddPeer(iPEndPoint, iPEndPoint, client, false);
                                             networkManager.ToPeerUDP.Add(iPEndPoint, peerForP2P);
-                                            networkManager.ToPeerUDPIP.Add(packet.response.Parameters[0].ToString(), peerForP2P);
+                                            networkManager.ToPeerUDPIP.Add(packet.response.Parameters[RemotePublicIP].ToString(), peerForP2P);
                                             networkManager._socketList.Add(peerForP2P);
                                             Link.Add(peerForP2P, true);
                                             peerForP2P.OnLink();
                                             break;
                                         }
-                                    case 4:
+                                    case P2PCode.NATP2PTell:
                                         {
-                                            string[] IP = packet.response.Parameters[0].ToString().Split(':');
-                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
+                                            IPEndPoint iPEndPoint = TraceRoute.IPEndPointParse(packet.response.Parameters[RemotePublicIP].ToString());
                                             NetBitStream stream = new NetBitStream();
-                                            stream.BYTES = (byte[])packet.response.Parameters[1];
+                                            stream.BYTES = (byte[])packet.response.Parameters[Data];
                                             stream._socketUDP = iPEndPoint;
                                             stream.DecodeHeader();
                                             client.PushPacket2(stream);
@@ -667,47 +882,27 @@ namespace UnityNetwork.Client
                             }
                         case (ushort)MessageIdentifiers.ID.P2P_CONNECTION:
                             {
-                                switch (packet.response.Code)
+                                IPEndPoint iPEndPoint = TraceRoute.IPEndPointParse(packet.response.Parameters[0].ToString());
+                                if (iPEndPoint != packet._peerUDP)
                                 {
-                                    case 0:
-                                        {
-                                            string[] IP = packet.response.Parameters[0].ToString().Split(':');
-                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
-                                            client.P2PAllowList.Remove(iPEndPoint);
-                                            client.P2PAllowList.Add(packet._peerUDP);
-                                            PeerForP2P peerForP2P = listener.P2PAddPeer(packet._peerUDP, client, true);
-                                            networkManager.ToPeerUDP.Add(packet._peerUDP, peerForP2P);
-                                            networkManager.ToPeerUDPIP.Add(packet._peerUDP.ToString(), peerForP2P);
-                                            networkManager._socketList.Add(peerForP2P);
-                                            Link.Add(peerForP2P, true);
-                                            peerForP2P.OnLink();
+                                    client.P2PAllowList.Remove(iPEndPoint);
+                                    client.P2PAllowList.Add(packet._peerUDP);
+                                }
+                                PeerForP2P peerForP2P = listener.P2PAddPeer(packet._peerUDP, iPEndPoint, client, true);
+                                networkManager.ToPeerUDP.Add(packet._peerUDP, peerForP2P);
+                                networkManager.ToPeerUDPIP.Add(packet._peerUDP.ToString(), peerForP2P);
+                                networkManager._socketList.Add(peerForP2P);
+                                Link.Add(peerForP2P, true);
+                                peerForP2P.OnLink();
 
-                                            NetBitStream stream = new NetBitStream();
-                                            Response b = new Response(1, new Dictionary<byte, object>() { { 0, MyIPPort } });
-                                            stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CONNECTION);
-                                            stream.WriteResponse2(b, key, false);
-                                            stream.EncodeHeader();
-                                            client.Send(stream, packet._peerUDP);
-                                            break;
-                                        }
-                                    case 1:
-                                        {
-                                            string[] IP = packet.response.Parameters[0].ToString().Split(':');
-                                            IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Parse(IP[0]), Convert.ToInt32(IP[1]));
-                                            client.P2PAllowList.Remove(iPEndPoint);
-                                            client.P2PAllowList.Add(packet._peerUDP);
-                                            PeerForP2P peerForP2P = listener.P2PAddPeer(packet._peerUDP, client, true);
-                                            networkManager.ToPeerUDP.Add(packet._peerUDP, peerForP2P);
-                                            networkManager.ToPeerUDPIP.Add(packet._peerUDP.ToString(), peerForP2P);
-                                            networkManager._socketList.Add(peerForP2P);
-                                            Link.Add(peerForP2P, true);
-                                            peerForP2P.OnLink();
-                                            break;
-                                        }
-                                    default:
-                                        {
-                                            break;
-                                        }
+                                if (packet.response.Code == 0)
+                                {
+                                    NetBitStream stream = new NetBitStream();
+                                    Response b = new Response(1, new Dictionary<byte, object>() { { 0, MyPublicIPPort } });
+                                    stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_CONNECTION);
+                                    stream.WriteResponse2(b, key, false);
+                                    stream.EncodeHeader();
+                                    client.Send(stream, packet._peerUDP);
                                 }
                                 break;
                             }
@@ -769,6 +964,7 @@ namespace UnityNetwork.Client
                                     NetBitStream stream2 = new NetBitStream();
                                     Response b = new Response();
                                     b.DebugMessage = "伺服器端主動關閉";
+                                    listener.DebugReturn("Disconnect on 伺服器端主動關閉");
                                     stream2.BeginWrite((ushort)MessageIdentifiers.ID.CONNECTION_LOST);
                                     stream2.WriteResponse2(b, "");
                                     stream2.EncodeHeader();
@@ -793,6 +989,7 @@ namespace UnityNetwork.Client
                                 ToPeerP2P.Remove(packet._peerUDP);
                                 ToPeerP2PIP.Remove(packet._peerUDP.ToString());
                                 client.P2PAllowList.Remove(packet._peerUDP);
+                                OnP2PLink.Remove(peerForP2P.PublicIP);
                                 peerForP2P.Close();
                                 peerForP2P = null;
                                 break;

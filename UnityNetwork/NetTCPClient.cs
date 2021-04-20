@@ -41,7 +41,7 @@ namespace UnityNetwork
 
             try
             {
-                IPEndPoint ipe = new IPEndPoint(IPAddress.Parse(address), remotePort);
+                IPEndPoint ipe = new IPEndPoint(Array.FindAll(Dns.GetHostEntry(address).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork)[0], remotePort);
 
                 PushPacket((ushort)MessageIdentifiers.ID.LOADING_NOW, "正在嘗試連線IP:" + ipe.ToString());
                 // 開始連接

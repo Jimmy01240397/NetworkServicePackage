@@ -14,6 +14,6 @@ namespace UnityNetwork.Client
         void OnEvent(Response response);
         void OnOperationResponse(Response response);
         void OnStatusChanged(LinkCobe connect);
-        PeerForP2P P2PAddPeer(IPEndPoint _peer, NetUDPClient client, bool NATPass);
+        PeerForP2P P2PAddPeer(IPEndPoint _peer, IPEndPoint publicIP, NetUDPClient client, bool NATPass);
     }
 }

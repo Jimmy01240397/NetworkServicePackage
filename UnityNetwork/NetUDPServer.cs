@@ -94,18 +94,30 @@ namespace UnityNetwork
                 stream.DecodeHeader();
                 ushort msgid = System.BitConverter.ToUInt16(stream.BYTES, NetBitStream.header_length);
 
-                if (!enableP2P && (msgid >= (ushort)MessageIdentifiers.ID.P2P_SERVER_CALL && msgid <= (ushort)MessageIdentifiers.ID.P2P_ID_CHAT))
+                if (!enableP2P && (msgid >= (ushort)MessageIdentifiers.ID.P2P_SERVER_CALL && msgid <= (ushort)MessageIdentifiers.ID.P2P_GET_PUBLIC_ENDPOINT))
                 {
                     return;
                 }
 
-                if (!((msgid == (ushort)MessageIdentifiers.ID.ID_CHAT || msgid == (ushort)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT || msgid == (ushort)MessageIdentifiers.ID.CHECKING || msgid == (ushort)MessageIdentifiers.ID.CONNECTION_LOST || msgid == (ushort)MessageIdentifiers.ID.KEY) && !_netMgr.ToPeerUDP.ContainsKey(ipe)))
+                if (msgid == (ushort)MessageIdentifiers.ID.P2P_GET_PUBLIC_ENDPOINT)
                 {
-                    PushPacket2(stream);
+                    stream = new NetBitStream();
+                    Response response = new Response(0, new Dictionary<byte, object>() { { 0, ipe.ToString() } });
+                    stream.BeginWrite((ushort)MessageIdentifiers.ID.P2P_GET_PUBLIC_ENDPOINT);
+                    stream.WriteResponse2(response, "", false);
+                    stream.EncodeHeader();
+                    _listener.Send(stream.BYTES, stream.Length, ipe);
                 }
                 else
                 {
-                    CatchMessage(((MessageIdentifiers.ID)msgid).ToString());
+                    if (!((msgid == (ushort)MessageIdentifiers.ID.ID_CHAT || msgid == (ushort)MessageIdentifiers.ID.NOT_IMPORT_ID_CHAT || msgid == (ushort)MessageIdentifiers.ID.CHECKING || msgid == (ushort)MessageIdentifiers.ID.CONNECTION_LOST || msgid == (ushort)MessageIdentifiers.ID.KEY) && !_netMgr.ToPeerUDP.ContainsKey(ipe)))
+                    {
+                        PushPacket2(stream);
+                    }
+                    else
+                    {
+                        CatchMessage(((MessageIdentifiers.ID)msgid).ToString());
+                    }
                 }
                 uc.BeginReceive(new AsyncCallback(Receive), uc);
                 // 下一個讀取

@@ -10,6 +10,7 @@ namespace UnityNetwork.Client
     public class PeerForP2P
     {
         private IPEndPoint _socket;
+
         private NetUDPClient client;
         public string Key { get; private set; } = "";
         private int cantlink = 0;
@@ -26,9 +27,12 @@ namespace UnityNetwork.Client
             get { return _socket; }
         }
 
-        public PeerForP2P(IPEndPoint peer, NetUDPClient client, bool NATPass)
+        public IPEndPoint PublicIP { get; private set; }
+
+        public PeerForP2P(IPEndPoint peer, IPEndPoint publicIP, NetUDPClient client, bool NATPass)
         {
             _socket = peer;
+            PublicIP = publicIP;
             this.client = client;
             this.NATPass = NATPass;
         }
@@ -51,6 +55,7 @@ namespace UnityNetwork.Client
         public void Close()
         {
             _socket = null;
+            PublicIP = null;
         }
 
         string SetSendKey()
@@ -113,7 +118,7 @@ namespace UnityNetwork.Client
                                     }
                                     else
                                     {
-                                        Response response = new Response(4, new Dictionary<byte, object>() { { 0, _socket.ToString() }, { 1, Sendthing[SendKey[0]].BYTES } });
+                                        Response response = new Response((byte)ClientLinkerUDP.P2PCode.NATP2PTell, new Dictionary<byte, object>() { { 0, _socket.ToString() }, { 1, Sendthing[SendKey[0]].BYTES } });
                                         client.P2PConnectServer(response);
                                     }
                                     Sendthing.Remove(SendKey[0]);
@@ -160,7 +165,7 @@ namespace UnityNetwork.Client
                 }
                 else
                 {
-                    Response response = new Response(4, new Dictionary<byte, object>() { { 0, _socket.ToString()}, { 1, stream.BYTES } });
+                    Response response = new Response((byte)ClientLinkerUDP.P2PCode.NATP2PTell, new Dictionary<byte, object>() { { 0, _socket.ToString()}, { 1, stream.BYTES } });
                     client.P2PConnectServer(response);
                 }
                 cantlink = 0;

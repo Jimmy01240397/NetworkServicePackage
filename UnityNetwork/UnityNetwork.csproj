@@ -60,6 +60,7 @@
     <Compile Include="Response.cs" />
     <Compile Include="Server\PeerUDPBase.cs" />
     <Compile Include="Server\UDPServerInvokeSend.cs" />
+    <Compile Include="TraceRoute.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

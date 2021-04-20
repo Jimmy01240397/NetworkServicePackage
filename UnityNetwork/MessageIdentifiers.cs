@@ -49,6 +49,8 @@ namespace UnityNetwork
 
             P2P_ID_CHAT,
 
+            P2P_GET_PUBLIC_ENDPOINT,
+
             END
         };
     }
