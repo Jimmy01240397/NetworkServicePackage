@@ -22,6 +22,19 @@ namespace UnityNetwork
         // 埠號
         int _port = 0;
 
+        private IPEndPoint listenerIP = null;
+        public IPEndPoint ListenerIP
+        {
+            get
+            {
+                if (listenerIP == null)
+                {
+                    listenerIP = (IPEndPoint)_listener.Client.LocalEndPoint;
+                }
+                return listenerIP;
+            }
+        }
+
         // 網路管理器 處理訊息和邏輯
         private NetworkManager _netMgr = null;
 
@@ -121,6 +134,15 @@ namespace UnityNetwork
                 }
                 uc.BeginReceive(new AsyncCallback(Receive), uc);
                 // 下一個讀取
+            }
+            catch (SocketException e)
+            {
+                if (_listener != null)
+                {
+                    _listener.Close();
+                    _listener = new UdpClient(listenerIP);
+                    _listener.BeginReceive(new AsyncCallback(Receive), _listener);
+                }
             }
             catch (System.Exception e)
             {

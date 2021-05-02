@@ -75,10 +75,10 @@ namespace UnityNetwork.Client
             {
                 if (client != null && _socket != null)
                 {
-                    client.P2PPushPacket((ushort)MessageIdentifiers.ID.P2P_LOST, "伺服器端主動斷線", _socket);
+                    client.P2PPushPacket((ushort)MessageIdentifiers.ID.P2P_LOST, "P2P本地端主動斷線", _socket);
                     NetBitStream stream2 = new NetBitStream();
                     Response b = new Response();
-                    b.DebugMessage = "伺服器端主動斷線";
+                    b.DebugMessage = "P2P對方主動斷線";
                     stream2.BeginWrite((ushort)MessageIdentifiers.ID.P2P_LOST);
                     stream2.WriteResponse2(b, "");
                     stream2.EncodeHeader();

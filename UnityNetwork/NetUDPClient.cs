@@ -37,11 +37,16 @@ namespace UnityNetwork
             }
         }
 
+        private IPEndPoint myIP = null;
         public IPEndPoint MyIP
         {
             get
             {
-                return (IPEndPoint)_socket.Client.LocalEndPoint;
+                if(myIP == null)
+                {
+                    myIP = (IPEndPoint)_socket.Client.LocalEndPoint;
+                }
+                return myIP;
             }
         }
 
@@ -150,7 +155,16 @@ namespace UnityNetwork
                     PushPacket2(stream);
                 }
             }
-            catch (System.Exception e)
+            catch (SocketException e)
+            {
+                if (_socket != null)
+                {
+                    _socket.Close();
+                    _socket = new UdpClient(myIP);
+                    _socket.BeginReceive(new AsyncCallback(Receive), _socket);
+                }
+            }
+            catch (Exception e)
             {
                 PushPacket((ushort)MessageIdentifiers.ID.CONNECTION_LOST, e.ToString());
             }

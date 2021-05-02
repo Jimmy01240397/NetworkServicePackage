@@ -586,15 +586,31 @@ namespace UnityNetwork.Client
                 }
                 #endregion
             }
-            List<IPAddress> publicenumer = TraceRoute.GetTraceRoute(publicIP.Address.ToString(), 50);
-            for (int i = 0; i < publicenumer.Count; i++)
+
+            {
+                List<IPAddress> publicenumer = TraceRoute.GetTraceRoute(publicIP.Address.ToString(), 50);
+                int ttl = 0;
+                for (ttl = publicenumer.Count - 1; ttl >= 0; ttl--)
+                {
+                    if (!checkIP(publicenumer[ttl], new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" })) break;
+                }
+                for (; ttl < publicenumer.Count; ttl++)
+                {
+                    if ((publicenumer[ttl] == null || checkIP(publicenumer[ttl], new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" }))) break;
+                }
+                ttl++;
+                testpublicip((short)ttl);
+            }
+            testpublicip(64);
+
+            /*for (int i = 0; i < publicenumer.Count; i++)
             {
                 if (publicenumer[i] != null && !checkIP(publicenumer[i], new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" }))
                 {
                     testpublicip((short)(i + 1));
                 }
             }
-            testpublicip(64);
+            testpublicip(64);*/
             #endregion
 
             #region 等全部測試完成後輸出測試結果
@@ -662,7 +678,7 @@ namespace UnityNetwork.Client
                                 }
                                 if (listener != null)
                                 {
-                                    listener.DebugReturn(packet._error);
+                                    listener.DebugReturn("Server lost:" + packet._peerUDP.ToString() + " " + packet._error);
                                     listener.OnStatusChanged((LinkCobe)1);
                                 }
                                 Disconnect();
@@ -963,9 +979,8 @@ namespace UnityNetwork.Client
                                 {
                                     NetBitStream stream2 = new NetBitStream();
                                     Response b = new Response();
-                                    b.DebugMessage = "伺服器端主動關閉";
-                                    listener.DebugReturn("Disconnect on 伺服器端主動關閉");
-                                    stream2.BeginWrite((ushort)MessageIdentifiers.ID.CONNECTION_LOST);
+                                    b.DebugMessage = "P2P對方因P2P_LOST而進行關閉";
+                                    stream2.BeginWrite((ushort)MessageIdentifiers.ID.P2P_LOST);
                                     stream2.WriteResponse2(b, "");
                                     stream2.EncodeHeader();
                                     this.client.Send(stream2, peerForP2P.socket);
