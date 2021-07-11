@@ -764,13 +764,13 @@ namespace JimmikerNetwork
         /// <param name="plainText">明文位元組</param>
         /// <param name="strKey">金鑰</param>
         /// <returns>返回加密後的密文位元組陣列</returns>
-        public static byte[] AESEncrypt(byte[] inputByteArray, byte[] _keyData, string strKey)
+        public static byte[] AESEncrypt(byte[] inputByteArray, byte[] IV, string strKey)
         {
             //分組加密演算法
             SymmetricAlgorithm des = Rijndael.Create();
             //設定金鑰及金鑰向量
             des.Key = Encoding.UTF8.GetBytes(strKey);
-            des.IV = _keyData;
+            des.IV = IV;
             MemoryStream ms = new MemoryStream();
             CryptoStream cs = new CryptoStream(ms, des.CreateEncryptor(), CryptoStreamMode.Write);
             cs.Write(inputByteArray, 0, inputByteArray.Length);
@@ -787,11 +787,11 @@ namespace JimmikerNetwork
         /// <param name="cipherText">密文位元組陣列</param>
         /// <param name="strKey">金鑰</param>
         /// <returns>返回解密後的位元組陣列</returns>
-        public static byte[] AESDecrypt(byte[] cipherText, byte[] _keyData, string strKey)
+        public static byte[] AESDecrypt(byte[] cipherText, byte[] IV, string strKey)
         {
             SymmetricAlgorithm des = Rijndael.Create();
             des.Key = Encoding.UTF8.GetBytes(strKey);
-            des.IV = _keyData;
+            des.IV = IV;
             byte[] decryptBytes = new byte[cipherText.Length];
             MemoryStream ms = new MemoryStream(cipherText);
             CryptoStream cs = new CryptoStream(ms, des.CreateDecryptor(), CryptoStreamMode.Read);
@@ -849,18 +849,35 @@ namespace JimmikerNetwork
             }
         }
 
+        static public int GetRSAKeySize(string Key)
+        {
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+            rsa.ImportCspBlob(Convert.FromBase64String(Key));
+            return rsa.KeySize;
+        }
+
         static public RSAKeyPair GenerateRSAKeys(int size)
         {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(size);
             return new RSAKeyPair(rsa.ExportCspBlob(true), rsa.ExportCspBlob(false));
         }
 
-        static public byte[] RSAEncrypt(string publicKey, byte[] content)
+        static public byte[] RSAEncrypt(string publicKey, byte[] IV, byte[] content)
         {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.ImportCspBlob(Convert.FromBase64String(publicKey));
 
             int buffersize = (rsa.KeySize / 8) - 11;
+
+            byte[] newIV = new byte[buffersize];
+            Array.Copy(IV, 0, newIV, 0, Math.Min(buffersize, IV.Length));
+
+            for (int i = IV.Length; i < buffersize; i++)
+            {
+                int now = (newIV[i - IV.Length] + newIV[i - IV.Length + 1]) % 256;
+                newIV[i] = (byte)now;
+            }
+
             using (MemoryStream stream = new MemoryStream())
             using(BinaryWriter writer = new BinaryWriter(stream))
             {
@@ -870,8 +887,17 @@ namespace JimmikerNetwork
                     byte[] buffer = new byte[copyLength];
                     Array.Copy(content, i, buffer, 0, copyLength);
 
-                    var encryptdata = rsa.Encrypt(buffer, false);
+                    BitArray bitArray = new BitArray(buffer);
+                    byte[] nowIV = new byte[copyLength];
+                    Array.Copy(newIV, 0, nowIV, 0, copyLength);
+                    BitArray bitIV = new BitArray(nowIV);
+                    byte[] newbuffer = new byte[copyLength];
+                    bitArray.Xor(bitIV).CopyTo(newbuffer, 0);
+
+                    byte[] encryptdata = rsa.Encrypt(newbuffer, false);
                     writer.Write(encryptdata);
+
+                    Array.Copy(encryptdata, 0, newIV, 0, newIV.Length);
                 }
                 writer.Close();
                 stream.Close();
@@ -879,12 +905,23 @@ namespace JimmikerNetwork
             }
         }
 
-        static public byte[] RSADecrypt(string privateKey, byte[] encryptedContent)
+        static public byte[] RSADecrypt(string privateKey, byte[] IV, byte[] encryptedContent)
         {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.ImportCspBlob(Convert.FromBase64String(privateKey));
 
             int buffersize = rsa.KeySize / 8;
+            int Decryptsize = (rsa.KeySize / 8) - 11;
+
+            byte[] newIV = new byte[Decryptsize];
+            Array.Copy(IV, 0, newIV, 0, Math.Min(Decryptsize, IV.Length));
+
+            for (int i = IV.Length; i < Decryptsize; i++)
+            {
+                int now = (newIV[i - IV.Length] + newIV[i - IV.Length + 1]) % 256;
+                newIV[i] = (byte)now;
+            }
+
             using (MemoryStream stream = new MemoryStream())
             using (BinaryWriter writer = new BinaryWriter(stream))
             {
@@ -894,8 +931,18 @@ namespace JimmikerNetwork
                     byte[] buffer = new byte[copyLength];
                     Array.Copy(encryptedContent, i, buffer, 0, copyLength);
 
-                    var decryptString = rsa.Decrypt(buffer, false);
-                    writer.Write(decryptString);
+                    byte[] decryptString = rsa.Decrypt(buffer, false);
+
+                    BitArray bitArray = new BitArray(decryptString);
+                    byte[] nowIV = new byte[decryptString.Length];
+                    Array.Copy(newIV, 0, nowIV, 0, decryptString.Length);
+                    BitArray bitIV = new BitArray(nowIV);
+                    byte[] newbuffer = new byte[decryptString.Length];
+                    bitArray.Xor(bitIV).CopyTo(newbuffer, 0);
+
+                    writer.Write(newbuffer);
+
+                    Array.Copy(buffer, 0, newIV, 0, newIV.Length);
                 }
                 writer.Close();
                 stream.Close();
@@ -936,15 +983,15 @@ namespace JimmikerNetwork
         {
             byte[] encryptBytes = null;
 
-            byte[] setdata(LockType Lock, byte[] AESIV, byte[] data)
+            byte[] setdata(LockType Lock, byte[] IV, byte[] data)
             {
                 MemoryStream stream = new MemoryStream();
                 BinaryWriter writer = new BinaryWriter(stream);
 
                 writer.Write((byte)Lock);
-                if (AESIV != null)
+                if (IV != null)
                 {
-                    writer.Write(AESIV, 0, 16);
+                    writer.Write(IV, 0, 16);
                 }
                 writer.Write(data);
 
@@ -965,14 +1012,16 @@ namespace JimmikerNetwork
                         }
                     case LockType.AES:
                         {
-                            byte[] _key1 = new byte[16];
-                            new Random(Guid.NewGuid().GetHashCode()).NextBytes(_key1);
-                            encryptBytes = setdata(_Lock, _key1, AESEncrypt(bs, _key1, key));
+                            byte[] IV = new byte[16];
+                            new Random(Guid.NewGuid().GetHashCode()).NextBytes(IV);
+                            encryptBytes = setdata(_Lock, IV, AESEncrypt(bs, IV, key));
                             break;
                         }
                     case LockType.RSA:
                         {
-                            encryptBytes = setdata(_Lock, null, RSAEncrypt(key, bs));
+                            byte[] IV = new byte[16];
+                            new Random(Guid.NewGuid().GetHashCode()).NextBytes(IV);
+                            encryptBytes = setdata(_Lock, IV, RSAEncrypt(key, IV, bs));
                             break;
                         }
                 }
@@ -989,7 +1038,7 @@ namespace JimmikerNetwork
         static public byte[] UnLock(byte[] bs, string key)
         {
             const int TypeLen = 1;
-            const int AESIVLen = 16;
+            const int IVLen = 16;
 
             byte[] _out = null;
             MemoryStream stream = new MemoryStream(bs);
@@ -1004,14 +1053,16 @@ namespace JimmikerNetwork
                     }
                 case LockType.AES:
                     {
-                        byte[] _key1 = reader.ReadBytes(AESIVLen);
-                        byte[] data = reader.ReadBytes(bs.Length - TypeLen - AESIVLen);
-                        _out = AESDecrypt(data, _key1, key);
+                        byte[] IV = reader.ReadBytes(IVLen);
+                        byte[] data = reader.ReadBytes(bs.Length - TypeLen - IVLen);
+                        _out = AESDecrypt(data, IV, key);
                         break;
                     }
                 case LockType.RSA:
                     {
-                        _out = RSADecrypt(key, reader.ReadBytes(bs.Length - TypeLen));
+                        byte[] IV = reader.ReadBytes(IVLen);
+                        byte[] data = reader.ReadBytes(bs.Length - TypeLen - IVLen);
+                        _out = RSADecrypt(key, IV, data);
                         break;
                     }
             }
