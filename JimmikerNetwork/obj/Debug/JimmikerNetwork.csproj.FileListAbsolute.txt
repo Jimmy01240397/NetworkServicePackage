@@ -1,0 +1,7 @@
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Debug\JimmikerNetwork.dll
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Debug\JimmikerNetwork.pdb
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Debug\JimmikerNetwork.csprojAssemblyReference.cache
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Debug\JimmikerNetwork.csproj.CoreCompileInputs.cache
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Debug\JimmikerNetwork.dll
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Debug\JimmikerNetwork.pdb
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Debug\JimmikerNetwork.xml
