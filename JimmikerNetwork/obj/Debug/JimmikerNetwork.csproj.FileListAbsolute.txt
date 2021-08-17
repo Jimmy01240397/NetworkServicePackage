@@ -5,3 +5,7 @@ C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Debug\JimmikerNet
 C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Debug\JimmikerNetwork.dll
 C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Debug\JimmikerNetwork.pdb
 C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Debug\JimmikerNetwork.xml
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Debug\System.Net.Http.dll
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Debug\System.Net.Http.xml
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Debug\zh-Hant\System.Net.Http.resources.dll
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Debug\JimmikerNetwork.csproj.CopyComplete

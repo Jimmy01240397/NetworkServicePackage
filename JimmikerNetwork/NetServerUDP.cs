@@ -160,9 +160,19 @@ namespace JimmikerNetwork
                             nowpacket = clientdata[0];
                             clientdata.RemoveAt(0);
                         }
-                        nowpacket.BeginRead();
-                        ReadData = nowpacket.ReadSendData(key);
-                        nowpacket.CloseStream();
+
+                        using (nowpacket)
+                        {
+                            if (nowpacket.BeginRead() != checkType)
+                            {
+                                lock (OnListenClient)
+                                {
+                                    OnListenClient.Remove(client);
+                                }
+                                return new SendData();
+                            }
+                            ReadData = nowpacket.ReadSendData(key);
+                        }
                     }
                     else
                     {
@@ -308,7 +318,7 @@ namespace JimmikerNetwork
             try
             {
                 int num = listener.EndReceiveFrom(ar, ref ipe);
-                if (num > 0)
+                if (num >= 4)
                 {
                     data = new byte[num];
                     Buffer.BlockCopy(m_Buffer, 0, data, 0, num);
@@ -332,6 +342,8 @@ namespace JimmikerNetwork
             catch (Exception e)
             {
                 DebugMessage("Receive:" + e.ToString());
+                EndPoint remoteEP = new IPEndPoint(IPAddress.IPv6Any, 0);
+                listener.BeginReceiveFrom(m_Buffer, 0, m_Buffer.Length, SocketFlags.None, ref remoteEP, Receive, listener);
                 return;
             }
             lock (OnListenClient)
@@ -361,41 +373,47 @@ namespace JimmikerNetwork
                         }
                     case PacketType.CONNECTION_LOST:
                         {
-                            packet.BeginRead();
-                            SendData sendData = packet.ReadSendData("");
-                            PushPacket(PacketType.CONNECTION_LOST, sendData.DebugMessage, packet.peer);
+                            if (ToPeer.ContainsKey((EndPoint)packet.peer))
+                            {
+                                packet.BeginRead();
+                                SendData sendData = packet.ReadSendData("");
+                                PushPacket(PacketType.CONNECTION_LOST, sendData.DebugMessage, packet.peer);
+                            }
                             packet.CloseStream();
                             break;
                         }
                     case PacketType.P2P_SERVER_CALL:
                         {
-                            packet.BeginRead();
-                            SendData sendData = packet.ReadSendData(SocketToKey[packet.peer]);
-
-                            string remoteendpoint = (string)((object[])sendData.Parameters)[0];
-                            string localendpoint = (string)((object[])sendData.Parameters)[1];
-                            object thedata = ((object[])sendData.Parameters)[2];
-
-                            if (remoteendpoint != packet.peer.ToString() && ToPeer.TryGetValue(TraceRoute.IPEndPointParse(remoteendpoint, AddressFamily.InterNetworkV6), out PeerBase peer))
+                            if (ToPeer.ContainsKey((EndPoint)packet.peer))
                             {
-                                ((object[])sendData.Parameters)[0] = packet.peer.ToString();
-                                ((object[])sendData.Parameters)[1] = remoteendpoint;
-                                using (Packet sendpacket = new Packet(peer.socket))
+                                packet.BeginRead();
+                                SendData sendData = packet.ReadSendData(SocketToKey[packet.peer]);
+
+                                string remoteendpoint = (string)((object[])sendData.Parameters)[0];
+                                string localendpoint = (string)((object[])sendData.Parameters)[1];
+                                object thedata = ((object[])sendData.Parameters)[2];
+
+                                if (remoteendpoint != packet.peer.ToString() && ToPeer.TryGetValue(TraceRoute.IPEndPointParse(remoteendpoint, AddressFamily.InterNetworkV6), out PeerBase peer))
                                 {
-                                    sendpacket.BeginWrite(PacketType.P2P_SERVER_CALL);
-                                    sendpacket.WriteSendData(sendData, SocketToKey[TraceRoute.IPEndPointParse(remoteendpoint, AddressFamily.InterNetworkV6)], SerializationData.LockType.AES);
-                                    Send(sendpacket, peer.socket);
+                                    ((object[])sendData.Parameters)[0] = packet.peer.ToString();
+                                    ((object[])sendData.Parameters)[1] = remoteendpoint;
+                                    using (Packet sendpacket = new Packet(peer.socket))
+                                    {
+                                        sendpacket.BeginWrite(PacketType.P2P_SERVER_CALL);
+                                        sendpacket.WriteSendData(sendData, SocketToKey[TraceRoute.IPEndPointParse(remoteendpoint, AddressFamily.InterNetworkV6)], SerializationData.LockType.AES);
+                                        Send(sendpacket, peer.socket);
+                                    }
+                                    //DebugMessage(((Client.P2PCode)sendData.Code).ToString() + ":" + packet.peer.ToString() + " to " + remoteendpoint.ToString());
                                 }
-                                //DebugMessage(((Client.P2PCode)sendData.Code).ToString() + ":" + packet.peer.ToString() + " to " + remoteendpoint.ToString());
-                            }
-                            else
-                            {
-                                ((object[])sendData.Parameters)[1] = packet.peer.ToString();
-                                using (Packet sendpacket = new Packet(packet.peer))
+                                else
                                 {
-                                    sendpacket.BeginWrite(PacketType.P2P_SERVER_FAILED);
-                                    sendpacket.WriteSendData(sendData, SocketToKey[packet.peer], SerializationData.LockType.AES);
-                                    Send(sendpacket, packet.peer);
+                                    ((object[])sendData.Parameters)[1] = packet.peer.ToString();
+                                    using (Packet sendpacket = new Packet(packet.peer))
+                                    {
+                                        sendpacket.BeginWrite(PacketType.P2P_SERVER_FAILED);
+                                        sendpacket.WriteSendData(sendData, SocketToKey[packet.peer], SerializationData.LockType.AES);
+                                        Send(sendpacket, packet.peer);
+                                    }
                                 }
                             }
                             packet.CloseStream();
@@ -414,18 +432,33 @@ namespace JimmikerNetwork
                         }
                     case PacketType.CHECK:
                         {
-                            lock (checklock)
+                            if (ToPeer.ContainsKey((EndPoint)packet.peer))
                             {
-                                clientcheck[(EndPoint)packet.peer] = true;
+                                lock (checklock)
+                                {
+                                    clientcheck[(EndPoint)packet.peer] = true;
+                                }
                             }
+                            packet.CloseStream();
+                            break;
+                        }
+                    case PacketType.ClientDebugMessage:
+                        {
+                            if (ToPeer.ContainsKey((EndPoint)packet.peer))
+                            {
+                                packet.BeginRead();
+                                SendData sendData = packet.ReadSendData(SocketToKey[packet.peer]);
+                                DebugMessage("ClientDebugMessage:" + packet.peer.ToString() + " " + sendData.DebugMessage);
+                            }
+
                             packet.CloseStream();
                             break;
                         }
                     default:
                         {
                             DebugMessage(msgid.ToString());
-                            /*PushPacket(PacketType.CONNECTION_LOST, "不正確的標頭資訊 Receive", packet.peer);
-                            packet.CloseStream();*/
+                            //PushPacket(PacketType.CONNECTION_LOST, "不正確的標頭資訊 Receive", packet.peer);
+                            packet.CloseStream();
                             break;
                         }
                 }

@@ -1001,7 +1001,7 @@ namespace JimmikerNetwork
                 return stream.ToArray();
             }
 
-            if (key != "")
+            if (!string.IsNullOrEmpty(key))
             {
                 switch(_Lock)
                 {

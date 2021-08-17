@@ -104,10 +104,20 @@ namespace JimmikerNetwork.Client
         /// Start P2P Connect
         /// </summary>
         /// <param name="IPPort">Connect Target</param>
-        /// <param name="callback">Connect Callback(Connect IP, Connect Public IP, Successful)</param>
-        public void StartP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, bool> callback)
+        /// <param name="callback">Connect Callback(Connect IP, Connect Public IP, Connect Peer, Successful)</param>
+        public void StartP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, PeerForP2PBase, bool> callback)
         {
             client.StartP2PConnect(IPPort, callback);
+        }
+
+        /// <summary>
+        /// Wait P2P Connect
+        /// </summary>
+        /// <param name="IPPort">Connect Target</param>
+        /// <param name="callback">Connect Callback(Connect IP, Connect Public IP, Connect Peer, Successful)</param>
+        public void WaitP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, PeerForP2PBase, bool> callback)
+        {
+            client.WaitP2PConnect(IPPort, callback);
         }
 
         public void RunUpdateThread()
@@ -171,11 +181,27 @@ namespace JimmikerNetwork.Client
 
         public virtual void Ask(byte Code, object Parameter, bool _Lock = true)
         {
-            using (Packet packet = new Packet(client.RemoteEndPoint))
+            if (linkstate == LinkCobe.Connect)
             {
-                packet.BeginWrite(PacketType.Request);
-                packet.WriteSendData(new SendData(Code, Parameter), Key, _Lock ? SerializationData.LockType.AES : SerializationData.LockType.None);
-                client.Send(packet);
+                using (Packet packet = new Packet(client.RemoteEndPoint))
+                {
+                    packet.BeginWrite(PacketType.Request);
+                    packet.WriteSendData(new SendData(Code, Parameter), Key, _Lock ? SerializationData.LockType.AES : SerializationData.LockType.None);
+                    client.Send(packet);
+                }
+            }
+        }
+
+        public virtual void SendDebugMessageToServer(string message)
+        {
+            if (linkstate == LinkCobe.Connect)
+            {
+                using (Packet packet = new Packet(client.RemoteEndPoint))
+                {
+                    packet.BeginWrite(PacketType.ClientDebugMessage);
+                    packet.WriteSendData(new SendData(0, null, 0, message), Key, SerializationData.LockType.AES);
+                    client.Send(packet);
+                }
             }
         }
 
@@ -271,7 +297,7 @@ namespace JimmikerNetwork.Client
                                     if (P2PToPeer.ContainsKey(remote))
                                     {
                                         PeerForP2PBase peer = P2PToPeer[remote];
-                                        SendData sendData = packet.ReadSendData(client.P2PRSAkey.PrivateKey);
+                                        SendData sendData = packet.ReadSendData(client.P2PSocketToKey[remote]);
                                         peer.OnGetData(sendData);
                                     }
                                     break;

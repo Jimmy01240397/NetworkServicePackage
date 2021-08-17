@@ -24,7 +24,7 @@ namespace JimmikerNetwork
 
         public SerializationData.RSAKeyPair P2PRSAkey { get; private set; }
 
-        public Dictionary<object, SerializationData.RSAKeyPair> P2PSocketToKey { get; private set; }
+        public Dictionary<object, string> P2PSocketToKey { get; private set; }
 
         public List<PeerForP2PBase> P2PSocketList { get; private set; }
         public Dictionary<EndPoint, PeerForP2PBase> P2PToPeer { get; private set; }
@@ -34,7 +34,8 @@ namespace JimmikerNetwork
         object SendLock = new object();
 
         List<IPEndPoint> OnP2PConnect;
-        Dictionary<IPEndPoint, Action<EndPoint, EndPoint, bool>> OnP2PConnectAction;
+        Dictionary<IPEndPoint, Stopwatch> OnP2PWait;
+        Dictionary<IPEndPoint, Action<EndPoint, EndPoint, PeerForP2PBase, bool>> OnP2PConnectAction;
         Dictionary<EndPoint, List<Packet>> OnListenP2PClient;
         Dictionary<EndPoint, EndPoint> P2PToRealEndPoint;
         Dictionary<EndPoint, EndPoint> P2PToNewEndPoint;
@@ -105,10 +106,11 @@ namespace JimmikerNetwork
             Packets = new List<Packet>();
             P2PSocketList = new List<PeerForP2PBase>();
             P2PToPeer = new Dictionary<EndPoint, PeerForP2PBase>();
-            P2PSocketToKey = new Dictionary<object, SerializationData.RSAKeyPair>();
+            P2PSocketToKey = new Dictionary<object, string>();
             P2Pclientcheck = new Dictionary<EndPoint, bool>();
             OnP2PConnect = new List<IPEndPoint>();
-            OnP2PConnectAction = new Dictionary<IPEndPoint, Action<EndPoint, EndPoint, bool>>();
+            OnP2PWait = new Dictionary<IPEndPoint, Stopwatch>();
+            OnP2PConnectAction = new Dictionary<IPEndPoint, Action<EndPoint, EndPoint, PeerForP2PBase, bool>>();
             OnListenP2PClient = new Dictionary<EndPoint, List<Packet>>();
             P2PToRealEndPoint = new Dictionary<EndPoint, EndPoint>();
             P2PToNewEndPoint = new Dictionary<EndPoint, EndPoint>();
@@ -122,6 +124,7 @@ namespace JimmikerNetwork
             P2PSocketToKey.Clear();
             P2Pclientcheck.Clear();
             OnP2PConnect.Clear();
+            OnP2PWait.Clear();
             OnP2PConnectAction.Clear();
             OnListenP2PClient.Clear();
             P2PToRealEndPoint.Clear();
@@ -153,11 +156,12 @@ namespace JimmikerNetwork
                 {
                     address = Dns.GetHostEntry(serverhost).AddressList[0];
                 }
-                RemoteEndPoint = new IPEndPoint(address, remotePort);
+                RemoteEndPoint = new IPEndPoint(address.MapToIPv6(), remotePort);
 
                 DebugMessage("正在嘗試連線IP:" + RemoteEndPoint.ToString());
                 using (Packet packet = new Packet(RemoteEndPoint))
                 {
+                    //Packet packet = new Packet(RemoteEndPoint);
                     packet.BeginWrite(PacketType.ON_CONNECT);
                     Send(packet);
                 }
@@ -368,7 +372,7 @@ namespace JimmikerNetwork
         /// </summary>
         /// <param name="IPPort">Connect Target</param>
         /// <param name="callback">Connect Callback(Connect IP, Connect Public IP, Successful)</param>
-        public void StartP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, bool> callback)
+        public void StartP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, PeerForP2PBase, bool> callback)
         {
             if (EnableP2P)
             {
@@ -377,6 +381,35 @@ namespace JimmikerNetwork
                     P2PPacketTurning(P2PCode.CallConnect, IPPort, new object[] { GetAllMyIP(), true });
                     OnP2PConnect.Add(IPPort);
                     OnP2PConnectAction.Add(IPPort, callback);
+                }
+            }
+            else
+            {
+                throw new P2PException("P2P mode is not enable.");
+            }
+        }
+
+        /// <summary>
+        /// Wait P2P Connect
+        /// </summary>
+        /// <param name="IPPort">Connect Target</param>
+        /// <param name="callback">Connect Callback(Connect IP, Connect Public IP, Successful)</param>
+        public void WaitP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, PeerForP2PBase, bool> callback)
+        {
+            if (EnableP2P)
+            {
+                if (!OnP2PConnectAction.ContainsKey(IPPort))
+                {
+                    OnP2PConnectAction.Add(IPPort, callback);
+                    lock (OnP2PWait)
+                    {
+                        if (!OnP2PConnect.Contains(IPPort))
+                        {
+                            Stopwatch stopwatch = new Stopwatch();
+                            stopwatch.Start();
+                            OnP2PWait.Add(IPPort, stopwatch);
+                        }
+                    }
                 }
             }
             else
@@ -430,28 +463,71 @@ namespace JimmikerNetwork
             }
             #endregion
 
+            #region 判斷雙方是否有IPV6
+            bool haveIPv6 = false;
+            if (IPs.Length > 0)
+            {
+                bool AhaveIPv6 = false;
+                for (int i = 0; i < IPs.Length; i++)
+                {
+                    IPEndPoint endPoint = TraceRoute.IPEndPointParse(IPs[i], AddressFamily.InterNetworkV6);
+                    if (endPoint.Address.IsIPv6Unicast())
+                    {
+                        AhaveIPv6 = true;
+                        break;
+                    }
+                }
+                if(AhaveIPv6)
+                {
+                    for (int i = 0; i < MyIPs.Length; i++)
+                    {
+                        IPEndPoint endPoint = TraceRoute.IPEndPointParse(MyIPs[i], AddressFamily.InterNetworkV6);
+                        if (endPoint.Address.IsIPv6Unicast())
+                        {
+                            haveIPv6 = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            #endregion
+
             #region 新增TestP2PCallConnect要連線的IP紀錄
-            Dictionary<string, object[]>  TestP2PCallConnectEnd = new Dictionary<string, object[]>();
-            List<string> TestP2PCallConnectIPList = new List<string>();
+            Dictionary<EndPoint, object[]>  TestP2PCallConnectEnd = new Dictionary<EndPoint, object[]>();
+            List<EndPoint> TestP2PCallConnectIPList = new List<EndPoint>();
             #endregion
 
             #region 非同步測試函式組
-            Func<Socket, IPEndPoint, short, int, KeyValuePair<string, object[]>> runtest = (socket, ip, ttl, port) =>
+            Func<Socket, IPEndPoint, int, KeyValuePair<EndPoint, object[]>> runtest = (socket, ip, port) =>
             {
-                short dettl = socket.Ttl;
-                socket.Ttl = ttl;
+                EndPoint localEndPoint = TraceRoute.IPEndPointParse(socket.LocalEndPoint.ToString(), AddressFamily.InterNetworkV6);
+
                 byte[] data = new byte[6];
                 socket.SendTo(data, ip);
-                socket.Ttl = dettl;
+
 
                 EndPoint retip = new IPEndPoint(IPAddress.IPv6Any, 0);
                 socket.ReceiveTimeout = ReadTime;
 
                 bool isprivate = checkIP(ip.Address, new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" });
+                bool isipv6 = ip.Address.IsIPv6Unicast();
 
-                P2PPacketTurning(P2PCode.TestCall, publicIP, new object[] { isprivate ? MyIPs : new string[] { LocalPublicEndPoint.ToString() }, port });
+                string[] useIPs = null;
+                if (isprivate)
+                {
+                    useIPs = Array.FindAll(MyIPs, a => checkIP(TraceRoute.IPEndPointParse(a, AddressFamily.InterNetworkV6).Address, new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" }));
+                }
+                else if (isipv6)
+                {
+                    useIPs = Array.FindAll(MyIPs, a => TraceRoute.IPEndPointParse(a, AddressFamily.InterNetworkV6).Address.IsIPv6Unicast());
+                }
+                else
+                {
+                    useIPs = new string[] { LocalPublicEndPoint.ToString() };
+                }
 
-                KeyValuePair<string, object[]> ans;
+                P2PPacketTurning(P2PCode.TestCall, publicIP, new object[] { useIPs, port });
+                KeyValuePair<EndPoint, object[]> ans;
                 try
                 {
                     data = new byte[65536];
@@ -462,12 +538,12 @@ namespace JimmikerNetwork
                     {
                         packet.BeginRead();
                         SendData sendData = packet.ReadSendData("");
-                        ans = new KeyValuePair<string, object[]>(socket.LocalEndPoint.ToString(), new object[] { ip, ttl, true, sendData.Parameters });
+                        ans = new KeyValuePair<EndPoint, object[]>(localEndPoint, new object[] { ip, true, sendData.Parameters });
                     }
                 }
                 catch (SocketException)
                 {
-                    ans = new KeyValuePair<string, object[]>(socket.LocalEndPoint.ToString(), new object[] { ip, ttl, false });
+                    ans = new KeyValuePair<EndPoint, object[]>(localEndPoint, new object[] { ip, false });
                 }
                 socket.Close();
                 return ans;
@@ -476,7 +552,7 @@ namespace JimmikerNetwork
             void callback(IAsyncResult ar)
             {
                 object state = ar.AsyncState;
-                KeyValuePair<string, object[]> ans = runtest.EndInvoke(ar);
+                KeyValuePair<EndPoint, object[]> ans = runtest.EndInvoke(ar);
                 lock (TestP2PCallConnectEnd)
                 {
                     if (!TestP2PCallConnectEnd.ContainsKey(ans.Key))
@@ -493,7 +569,7 @@ namespace JimmikerNetwork
                 foreach (string ip in IPs)
                 {
                     IPEndPoint endPoint = TraceRoute.IPEndPointParse(ip, AddressFamily.InterNetworkV6);
-                    if (!checkIP(endPoint.Address, new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" }) && endPoint.Address.AddressFamily == AddressFamily.InterNetwork) continue;
+                    if (!checkIP(endPoint.Address, new string[] { "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16" })) continue;
 
                     Socket socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
                     socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
@@ -502,15 +578,38 @@ namespace JimmikerNetwork
                         socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
                     }
                     socket.Bind(new IPEndPoint(IPAddress.IPv6Any, 0));
-                    TestP2PCallConnectIPList.Add(socket.LocalEndPoint.ToString());
-                    runtest.BeginInvoke(socket, endPoint, 64, ((IPEndPoint)socket.LocalEndPoint).Port, callback, null);
+                    EndPoint localEndPoint = TraceRoute.IPEndPointParse(socket.LocalEndPoint.ToString(), AddressFamily.InterNetworkV6);
+                    TestP2PCallConnectIPList.Add(localEndPoint);
+                    runtest.BeginInvoke(socket, endPoint, ((IPEndPoint)localEndPoint).Port, callback, null);
                 }
             }
             #endregion
 
-            #region 公網IP與TTL測試
+            #region 雙方皆有IPv6時的測試
+            if (haveIPv6)
+            {
+                foreach (string ip in IPs)
+                {
+                    IPEndPoint endPoint = TraceRoute.IPEndPointParse(ip, AddressFamily.InterNetworkV6);
+                    if (!endPoint.Address.IsIPv6Unicast()) continue;
 
-            void testpublicip(short ttl)
+                    Socket socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
+                    socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
+                    if ((byte)Environment.OSVersion.Platform >= 0 && (byte)Environment.OSVersion.Platform <= 3)
+                    {
+                        socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+                    }
+                    socket.Bind(new IPEndPoint(IPAddress.IPv6Any, 0));
+                    EndPoint localEndPoint = TraceRoute.IPEndPointParse(socket.LocalEndPoint.ToString(), AddressFamily.InterNetworkV6);
+                    TestP2PCallConnectIPList.Add(localEndPoint);
+                    runtest.BeginInvoke(socket, endPoint, ((IPEndPoint)localEndPoint).Port, callback, null);
+                }
+            }
+            #endregion
+
+            #region 公網IP測試
+
+            void testpublicip()
             {
                 //listener.DebugReturn(publicenumer[i].ToString());
                 #region 建立測試用Socket
@@ -521,7 +620,8 @@ namespace JimmikerNetwork
                     socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
                 }
                 socket.Bind(new IPEndPoint(IPAddress.IPv6Any, 0));
-                TestP2PCallConnectIPList.Add(socket.LocalEndPoint.ToString());
+                EndPoint localEndPoint = TraceRoute.IPEndPointParse(socket.LocalEndPoint.ToString(), AddressFamily.InterNetworkV6);
+                TestP2PCallConnectIPList.Add(localEndPoint);
                 #endregion
 
                 #region 取得外網對內PORT
@@ -548,15 +648,15 @@ namespace JimmikerNetwork
                     }
                     #endregion
 
-                    runtest.BeginInvoke(socket, publicIP, ttl, GetIPPORT.Port, callback, null);
+                    runtest.BeginInvoke(socket, publicIP, GetIPPORT.Port, callback, null);
 
                     #region 取得失敗直接結束
                 }
                 catch (SocketException e)
                 {
-                    if (!TestP2PCallConnectEnd.ContainsKey(socket.LocalEndPoint.ToString()))
+                    if (!TestP2PCallConnectEnd.ContainsKey(localEndPoint))
                     {
-                        TestP2PCallConnectEnd.Add(socket.LocalEndPoint.ToString(), new object[] { publicIP, ttl, false });
+                        TestP2PCallConnectEnd.Add(localEndPoint, new object[] { publicIP, false });
                     }
                     socket.Close();
                 }
@@ -577,20 +677,20 @@ namespace JimmikerNetwork
                 ttl++;
                 testpublicip((short)ttl);
             }*/
-            testpublicip(64);
+            testpublicip();
             #endregion
 
             #region 等全部測試完成後輸出測試結果
             Thread.Sleep(500);
 
             bool canlink = false;
-            string linkip = "";
+            EndPoint linkip = null;
             for (int i = 0; i < TestP2PCallConnectIPList.Count; i++)
             {
                 SpinWait.SpinUntil(() => TestP2PCallConnectEnd.ContainsKey(TestP2PCallConnectIPList[i]));
                 lock (TestP2PCallConnectEnd)
                 {
-                    if (!canlink && (bool)TestP2PCallConnectEnd[TestP2PCallConnectIPList[i]][2])
+                    if (!canlink && (bool)TestP2PCallConnectEnd[TestP2PCallConnectIPList[i]][1])
                     {
                         canlink = true;
                         linkip = TestP2PCallConnectIPList[i];
@@ -625,19 +725,19 @@ namespace JimmikerNetwork
 
                     OnP2PConnect.Remove(realip);
 
-                    P2PSocketToKey.Add(client, (SerializationData.RSAKeyPair)data[1]);
-                    PeerForP2PBase peer = P2PAddPeer((IPEndPoint)packet.peer, realip, this, (bool)data[2]);
-                    P2PSocketList.Add(peer);
-                    P2PToPeer.Add(client, peer);
+                    P2PSocketToKey.Add(client, data[1].ToString());
                     if (!P2Pclientcheck.ContainsKey(client))
                     {
                         P2Pclientcheck.Add(client, true);
                     }
+                    PeerForP2PBase peer = P2PAddPeer(client, realip, this, (bool)data[2]);
+                    P2PSocketList.Add(peer);
+                    P2PToPeer.Add(client, peer);
                     if (OnP2PConnectAction.ContainsKey(realip))
                     {
                         var doing = OnP2PConnectAction[realip];
                         OnP2PConnectAction.Remove(realip);
-                        doing?.Invoke(client, realip, true);
+                        doing?.Invoke(client, realip, peer, true);
                     }
                 }
             }
@@ -677,8 +777,15 @@ namespace JimmikerNetwork
                             nowpacket = clientdata[0];
                             clientdata.RemoveAt(0);
                         }
-                        nowpacket.BeginRead();
-                        ReadData = nowpacket.ReadSendData(key);
+                        using (nowpacket)
+                        {
+                            if (nowpacket.BeginRead() != checkType)
+                            {
+                                failedcallback?.Invoke(ReadData);
+                                return new SendData();
+                            }
+                            ReadData = nowpacket.ReadSendData(key);
+                        }
                     }
                     else
                     {
@@ -742,12 +849,13 @@ namespace JimmikerNetwork
                                         SerializationData.RSAKeyPair P2PKey = new SerializationData.RSAKeyPair((byte[])sendData.Parameters);
                                         #endregion
 
-                                        #region Send RSA key
-                                        onSend(PacketType.RSAKEY, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, P2PRSAkey.PublicKeyBytes));
+                                        #region Send AES key
+                                        string P2PAESkey = SerializationData.GenerateAESKey();
+                                        onSend(PacketType.AESKEY, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, P2PAESkey));
                                         #endregion
 
-                                        #region Check RSA Key
-                                        sendData = onRead(PacketType.RSAKEY, P2PRSAkey.PrivateKey, (a) => a.Parameters.ToString() == "Connect check", (data) =>
+                                        #region Check AES Key
+                                        sendData = onRead(PacketType.AESKEY, P2PAESkey, (a) => a.Parameters.ToString() == "Connect check", (data) =>
                                         {
                                             IPEndPoint realip = (IPEndPoint)P2PToRealEndPoint[client];
 
@@ -756,7 +864,7 @@ namespace JimmikerNetwork
                                             {
                                                 var doing = OnP2PConnectAction[realip];
                                                 OnP2PConnectAction.Remove(realip);
-                                                doing?.Invoke(client, realip, false);
+                                                doing?.Invoke(client, realip, null, false);
                                             }
                                             lock (OnListenP2PClient)
                                             {
@@ -771,11 +879,11 @@ namespace JimmikerNetwork
                                         #endregion
 
                                         #region Send CONNECT_SUCCESSFUL
-                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, "Connect successful"));
+                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "Connect successful"));
                                         #endregion
 
                                         #region On CONNECT
-                                        sendData = onRead(PacketType.P2P_CONNECT_SUCCESSFUL, P2PRSAkey.PrivateKey, (a) => a.Parameters.ToString() == "On Connect", (data) =>
+                                        sendData = onRead(PacketType.P2P_CONNECT_SUCCESSFUL, P2PAESkey, (a) => a.Parameters.ToString() == "On Connect", (data) =>
                                         {
                                             IPEndPoint realip = (IPEndPoint)P2PToRealEndPoint[client];
 
@@ -784,7 +892,7 @@ namespace JimmikerNetwork
                                             {
                                                 var doing = OnP2PConnectAction[realip];
                                                 OnP2PConnectAction.Remove(realip);
-                                                doing?.Invoke(client, realip, false);
+                                                doing?.Invoke(client, realip, null, false);
                                             }
                                             lock (OnListenP2PClient)
                                             {
@@ -801,7 +909,7 @@ namespace JimmikerNetwork
                                         P2PToRealEndPoint.Remove(client);
                                         P2PToNewEndPoint.Remove(therealip);
 
-                                        P2PPushPacket(PacketType.P2P_CONNECT_SUCCESSFUL, P2PKey, client, therealip, false);
+                                        P2PPushPacket(PacketType.P2P_CONNECT_SUCCESSFUL, P2PAESkey, client, therealip, false);
 
                                         lock (OnListenP2PClient)
                                         {
@@ -833,7 +941,7 @@ namespace JimmikerNetwork
                                             {
                                                 var doing = OnP2PConnectAction[client];
                                                 OnP2PConnectAction.Remove(client);
-                                                doing?.Invoke(client, client, false);
+                                                doing?.Invoke(client, client, null, false);
                                             }
                                             lock (OnListenP2PClient)
                                             {
@@ -846,19 +954,20 @@ namespace JimmikerNetwork
                                         SerializationData.RSAKeyPair P2PKey = new SerializationData.RSAKeyPair((byte[])sendData.Parameters);
                                         #endregion
 
-                                        #region Send RSA key
-                                        onSend(PacketType.RSAKEY, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, P2PRSAkey.PublicKeyBytes), true);
+                                        #region Send AES key
+                                        string P2PAESkey = SerializationData.GenerateAESKey();
+                                        onSend(PacketType.AESKEY, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, P2PAESkey), true);
                                         #endregion
 
                                         #region Check RSA Key
-                                        sendData = onRead(PacketType.RSAKEY, P2PRSAkey.PrivateKey, (a) => a.Parameters.ToString() == "Connect check", (data) =>
+                                        sendData = onRead(PacketType.AESKEY, P2PAESkey, (a) => a.Parameters.ToString() == "Connect check", (data) =>
                                         {
                                             OnP2PConnect.Remove(client);
                                             if (OnP2PConnectAction.ContainsKey(client))
                                             {
                                                 var doing = OnP2PConnectAction[client];
                                                 OnP2PConnectAction.Remove(client);
-                                                doing?.Invoke(client, client, false);
+                                                doing?.Invoke(client, client, null, false);
                                             }
                                             lock (OnListenP2PClient)
                                             {
@@ -871,18 +980,18 @@ namespace JimmikerNetwork
                                         #endregion
 
                                         #region Send CONNECT_SUCCESSFUL
-                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, "Connect successful"), true);
+                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "Connect successful"), true);
                                         #endregion
 
                                         #region On CONNECT
-                                        sendData = onRead(PacketType.P2P_CONNECT_SUCCESSFUL, P2PRSAkey.PrivateKey, (a) => a.Parameters.ToString() == "On Connect", (data) =>
+                                        sendData = onRead(PacketType.P2P_CONNECT_SUCCESSFUL, P2PAESkey, (a) => a.Parameters.ToString() == "On Connect", (data) =>
                                         {
                                             OnP2PConnect.Remove(client);
                                             if (OnP2PConnectAction.ContainsKey(client))
                                             {
                                                 var doing = OnP2PConnectAction[client];
                                                 OnP2PConnectAction.Remove(client);
-                                                doing?.Invoke(client, client, false);
+                                                doing?.Invoke(client, client, null, false);
                                             }
                                             lock (OnListenP2PClient)
                                             {
@@ -892,7 +1001,7 @@ namespace JimmikerNetwork
                                         if (sendData == new SendData())
                                             return;
 
-                                        P2PPushPacket(PacketType.P2P_CONNECT_SUCCESSFUL, P2PKey, client, client, true);
+                                        P2PPushPacket(PacketType.P2P_CONNECT_SUCCESSFUL, P2PAESkey, client, client, true);
 
                                         lock (OnListenP2PClient)
                                         {
@@ -921,15 +1030,15 @@ namespace JimmikerNetwork
                                         onSend(PacketType.RSAKEY, client, "", SerializationData.LockType.None, new SendData(0, P2PRSAkey.PublicKeyBytes), true);
                                         #endregion
 
-                                        #region Get RSA key
-                                        sendData = onRead(PacketType.RSAKEY, P2PRSAkey.PrivateKey, (a) => true, (data) =>
+                                        #region Get AES key
+                                        sendData = onRead(PacketType.AESKEY, P2PRSAkey.PrivateKey, (a) => true, (data) =>
                                         {
                                             OnP2PConnect.Remove(client);
                                             if (OnP2PConnectAction.ContainsKey(client))
                                             {
                                                 var doing = OnP2PConnectAction[client];
                                                 OnP2PConnectAction.Remove(client);
-                                                doing?.Invoke(client, client, false);
+                                                doing?.Invoke(client, client, null, false);
                                             }
                                             lock (OnListenP2PClient)
                                             {
@@ -939,22 +1048,22 @@ namespace JimmikerNetwork
                                         if (sendData == new SendData())
                                             return;
 
-                                        SerializationData.RSAKeyPair P2PKey = new SerializationData.RSAKeyPair((byte[])sendData.Parameters);
+                                        string P2PAESkey = sendData.Parameters.ToString();
                                         #endregion
 
                                         #region Send RSA Check
-                                        onSend(PacketType.P2P_CHECKING, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, "Connect check"), true);
+                                        onSend(PacketType.AESKEY, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "Connect check"), true);
                                         #endregion
 
                                         #region Get CONNECT_SUCCESSFUL
-                                        sendData = onRead(PacketType.P2P_CONNECT_SUCCESSFUL, P2PRSAkey.PrivateKey, (a) => a.Parameters.ToString() == "Connect successful", (data) =>
+                                        sendData = onRead(PacketType.P2P_CONNECT_SUCCESSFUL, P2PAESkey, (a) => a.Parameters.ToString() == "Connect successful", (data) =>
                                         {
                                             OnP2PConnect.Remove(client);
                                             if (OnP2PConnectAction.ContainsKey(client))
                                             {
                                                 var doing = OnP2PConnectAction[client];
                                                 OnP2PConnectAction.Remove(client);
-                                                doing?.Invoke(client, client, false);
+                                                doing?.Invoke(client, client, null, false);
                                             }
                                             lock (OnListenP2PClient)
                                             {
@@ -967,8 +1076,8 @@ namespace JimmikerNetwork
                                         #endregion
 
                                         #region On CONNECT
-                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, "On Connect"), true);
-                                        P2PPushPacket(PacketType.P2P_CONNECT_SUCCESSFUL, P2PKey, client, client, true);
+                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "On Connect"), true);
+                                        P2PPushPacket(PacketType.P2P_CONNECT_SUCCESSFUL, P2PAESkey, client, client, true);
 
                                         lock (OnListenP2PClient)
                                         {
@@ -1002,8 +1111,8 @@ namespace JimmikerNetwork
                             onSend(PacketType.RSAKEY, client, "", SerializationData.LockType.None, new SendData(0, P2PRSAkey.PublicKeyBytes));
                             #endregion
 
-                            #region Get RSA key
-                            sendData = onRead(PacketType.RSAKEY, P2PRSAkey.PrivateKey, (a) => true, (data) =>
+                            #region Get AES key
+                            sendData = onRead(PacketType.AESKEY, P2PRSAkey.PrivateKey, (a) => true, (data) =>
                             {
                                 IPEndPoint realip = (IPEndPoint)P2PToRealEndPoint[client];
 
@@ -1012,7 +1121,7 @@ namespace JimmikerNetwork
                                 {
                                     var doing = OnP2PConnectAction[realip];
                                     OnP2PConnectAction.Remove(realip);
-                                    doing?.Invoke(client, realip, false);
+                                    doing?.Invoke(client, realip, null, false);
                                 }
                                 lock (OnListenP2PClient)
                                 {
@@ -1024,15 +1133,15 @@ namespace JimmikerNetwork
                             if (sendData == new SendData())
                                 return;
 
-                            SerializationData.RSAKeyPair P2PKey = new SerializationData.RSAKeyPair((byte[])sendData.Parameters);
+                            string P2PAESkey = sendData.Parameters.ToString();
                             #endregion
 
-                            #region Send RSA Check
-                            onSend(PacketType.P2P_CHECKING, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, "Connect check"));
+                            #region Send AES Check
+                            onSend(PacketType.AESKEY, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "Connect check"));
                             #endregion
 
                             #region Get CONNECT_SUCCESSFUL
-                            sendData = onRead(PacketType.P2P_CONNECT_SUCCESSFUL, P2PRSAkey.PrivateKey, (a) => a.Parameters.ToString() == "Connect successful", (data) =>
+                            sendData = onRead(PacketType.P2P_CONNECT_SUCCESSFUL, P2PAESkey, (a) => a.Parameters.ToString() == "Connect successful", (data) =>
                             {
                                 IPEndPoint realip = (IPEndPoint)P2PToRealEndPoint[client];
 
@@ -1041,7 +1150,7 @@ namespace JimmikerNetwork
                                 {
                                     var doing = OnP2PConnectAction[realip];
                                     OnP2PConnectAction.Remove(realip);
-                                    doing?.Invoke(client, realip, false);
+                                    doing?.Invoke(client, realip, null, false);
                                 }
                                 lock (OnListenP2PClient)
                                 {
@@ -1056,14 +1165,14 @@ namespace JimmikerNetwork
                             #endregion
 
                             #region On CONNECT
-                            onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, "On Connect"));
+                            onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "On Connect"));
 
                             IPEndPoint therealip = (IPEndPoint)P2PToRealEndPoint[client];
 
                             P2PToRealEndPoint.Remove(client);
                             P2PToNewEndPoint.Remove(therealip);
 
-                            P2PPushPacket(PacketType.P2P_CONNECT_SUCCESSFUL, P2PKey, client, therealip, false);
+                            P2PPushPacket(PacketType.P2P_CONNECT_SUCCESSFUL, P2PAESkey, client, therealip, false);
 
                             lock (OnListenP2PClient)
                             {
@@ -1148,7 +1257,7 @@ namespace JimmikerNetwork
             try
             {
                 int num = socket.EndReceiveFrom(ar, ref ipe);
-                if (num > 0)
+                if (num >= 4)
                 {
                     data = new byte[num];
                     Buffer.BlockCopy(m_Buffer, 0, data, 0, num);
@@ -1171,7 +1280,12 @@ namespace JimmikerNetwork
             }
             catch (Exception e)
             {
-                DebugMessage("SendCallback:" + e.ToString());
+                DebugMessage("Receive:" + e.ToString());
+                EndPoint remoteEP = new IPEndPoint(IPAddress.IPv6Any, 0);
+                if (socket != null)
+                {
+                    socket.BeginReceiveFrom(m_Buffer, 0, m_Buffer.Length, SocketFlags.None, ref remoteEP, Receive, socket);
+                }
                 return;
             }
             #region C2S
@@ -1230,7 +1344,10 @@ namespace JimmikerNetwork
                         PushPacket(inpacket);
                         lock (checklock)
                         {
-                            P2Pclientcheck[(EndPoint)inpacket.peer] = true;
+                            if (P2Pclientcheck.ContainsKey((EndPoint)inpacket.peer))
+                            {
+                                P2Pclientcheck[(EndPoint)inpacket.peer] = true;
+                            }
                         }
                     }
                     else
@@ -1259,16 +1376,6 @@ namespace JimmikerNetwork
                                 }
                             default:
                                 {
-                                    lock (OnListenP2PClient)
-                                    {
-                                        List<KeyValuePair<EndPoint, List<Packet>>> aaa = new List<KeyValuePair<EndPoint, List<Packet>>>(OnListenP2PClient);
-                                        DebugMessage("Receive: " + inpacket.peer.ToString());
-                                        foreach(KeyValuePair<EndPoint, List<Packet>> a in aaa)
-                                        {
-                                            DebugMessage(a.Key.ToString());
-                                        }
-                                    }
-
                                     DebugMessage("不正確的標頭資訊 Receive: " + thetype.ToString());
                                     /*P2PPushPacket(PacketType.CONNECTION_LOST, "不正確的標頭資訊 Receive", (EndPoint)inpacket.peer);
                                     inpacket.CloseStream();*/
@@ -1296,7 +1403,18 @@ namespace JimmikerNetwork
                                 {
                                     case P2PCode.CallConnect:
                                         {
-                                            OnP2PConnect.Add(remote);
+                                            lock (OnP2PWait)
+                                            {
+                                                if (!OnP2PConnect.Contains(remote))
+                                                {
+                                                    OnP2PConnect.Add(remote);
+                                                    if (OnP2PWait.ContainsKey(remote))
+                                                    {
+                                                        OnP2PWait[remote].Stop();
+                                                        OnP2PWait.Remove(remote);
+                                                    }
+                                                }
+                                            }
 
                                             #region Test P2P Call Connect
                                             List<string> IPs = new List<string>((string[])((object[])Parameters[Data])[0]);
@@ -1312,10 +1430,10 @@ namespace JimmikerNetwork
                                                 using (Packet sendpacket = new Packet((IPEndPoint)getdata[0]))
                                                 {
                                                     sendpacket.BeginWrite(PacketType.P2P_CHECKING);
-                                                    SendSetTTL(sendpacket, (short)getdata[1]);
+                                                    Send(sendpacket);
                                                 }
 
-                                                P2PPacketTurning(P2PCode.CallConnectComplete, remote, getdata[3]);
+                                                P2PPacketTurning(P2PCode.CallConnectComplete, remote, getdata[2]);
                                             }
                                             else if ((bool)((object[])Parameters[Data])[1])
                                             {
@@ -1435,7 +1553,15 @@ namespace JimmikerNetwork
                                     {
                                         var action = OnP2PConnectAction[remote];
                                         OnP2PConnectAction.Remove(remote);
-                                        action?.Invoke(remote, remote, false);
+                                        action?.Invoke(remote, remote, null, false);
+                                    }
+                                }
+                                lock (OnP2PWait)
+                                {
+                                    if (OnP2PWait.ContainsKey(remote))
+                                    {
+                                        OnP2PWait[remote].Stop();
+                                        OnP2PWait.Remove(remote);
                                     }
                                 }
                                 break;
@@ -1479,7 +1605,7 @@ namespace JimmikerNetwork
         {
             IPAddress[] ipAddresses;
             //ipAddresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => a.AddressFamily == AddressFamily.InterNetwork);
-            ipAddresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => (a.AddressFamily == AddressFamily.InterNetwork || (a.AddressFamily == AddressFamily.InterNetworkV6 && a.IsIPv6SiteLocal)));
+            ipAddresses = Array.FindAll(Dns.GetHostEntry(string.Empty).AddressList, a => (a.AddressFamily == AddressFamily.InterNetwork || (a.AddressFamily == AddressFamily.InterNetworkV6 && a.IsIPv6Unicast())));
             //ipAddresses = Dns.GetHostEntry(string.Empty).AddressList;
             string[] xx = new string[ipAddresses.Length];
             for (int i = 0; i < xx.Length; i++)
@@ -1534,6 +1660,30 @@ namespace JimmikerNetwork
                 for (int i = 0; i < P2PSocketList.Count; i++)
                 {
                     SendP2PCheck((EndPoint)P2PSocketList[i].socket);
+                }
+                lock (OnP2PWait)
+                {
+                    List<KeyValuePair<IPEndPoint, Stopwatch>> waitlist = new List<KeyValuePair<IPEndPoint, Stopwatch>>(OnP2PWait);
+                    //DebugMessage("LinkChecker OnP2PWait: " + waitlist.Count + " " + OnP2PConnectAction.Count);
+                    for (int i = 0; i < waitlist.Count; i++)
+                    {
+                        if(OnP2PConnect.Contains(waitlist[i].Key))
+                        {
+                            OnP2PWait[waitlist[i].Key].Stop();
+                            OnP2PWait.Remove(waitlist[i].Key);
+                        }
+                        else
+                        {
+                            if(waitlist[i].Value.ElapsedMilliseconds > 3000)
+                            {
+                                OnP2PWait[waitlist[i].Key].Stop();
+                                OnP2PWait.Remove(waitlist[i].Key);
+                                var doing = OnP2PConnectAction[waitlist[i].Key];
+                                OnP2PConnectAction.Remove(waitlist[i].Key);
+                                doing(waitlist[i].Key, waitlist[i].Key, null, false);
+                            }
+                        }
+                    }
                 }
                 if (checkerTime.ElapsedMilliseconds > 10000)
                 {
@@ -1615,7 +1765,7 @@ namespace JimmikerNetwork
             }
         }
 
-        public void P2PPushPacket(PacketType msgid, SerializationData.RSAKeyPair Key, object remote, object remotePublic, bool NAT)
+        public void P2PPushPacket(PacketType msgid, string Key, object remote, object remotePublic, bool NAT)
         {
             Packet packet = new Packet(remote, null, new object[] { remotePublic, Key, NAT });
             packet.BeginWrite(msgid);
@@ -1641,6 +1791,7 @@ namespace JimmikerNetwork
                 {
                     try
                     {
+                        //socket.SendTo(bts.Bytes, 0, bts.Length, SocketFlags.None, (EndPoint)bts.peer);
                         socket.BeginSendTo(bts.Bytes, 0, bts.Length, SocketFlags.None, (EndPoint)bts.peer, SendCallback, socket);
                         return true;
                     }
@@ -1659,12 +1810,12 @@ namespace JimmikerNetwork
 
         private void SendCallback(System.IAsyncResult ar)
         {
-            Socket ns = (Socket)ar.AsyncState;
+            //Socket ns = (Socket)ar.AsyncState;
             lock (SendLock)
             {
                 try
                 {
-                    ns.EndSendTo(ar);
+                    socket.EndSendTo(ar);
                 }
                 catch (SocketException e)
                 {

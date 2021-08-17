@@ -131,6 +131,56 @@ namespace JimmikerNetwork
             return iPAddresses.ToArray();
         }
 
+        public static IPAddress MapToIPv6(this IPAddress address)
+        {
+            if (address.AddressFamily == AddressFamily.InterNetworkV6)
+            {
+                return address;
+            }
+            ushort[] data = new ushort[8]
+            {
+        0,
+        0,
+        0,
+        0,
+        0,
+        65535,
+        (ushort)(((address.Address & 0xFF00) >> 8) | ((address.Address & 0xFF) << 8)),
+        (ushort)(((address.Address & 4278190080u) >> 24) | ((address.Address & 0xFF0000) >> 8))
+            };
+            byte[] getdata = new byte[16];
+
+            int num = 0;
+            for (int i = 0; i < 8; i++)
+            {
+                getdata[num++] = (byte)((data[i] >> 8) & 0xFF);
+                getdata[num++] = (byte)(data[i] & 0xFF);
+            }
+            return new IPAddress(getdata, 0u);
+        }
+
+        public static IPAddress MapToIPv4(this IPAddress address)
+        {
+            if (address.AddressFamily == AddressFamily.InterNetwork)
+            {
+                return address;
+            }
+            byte[] data = address.GetAddressBytes();
+            ushort[] m_Numbers = new ushort[8];
+            for (int i = 0; i < 8; i++)
+            {
+                m_Numbers[i] = (ushort)(data[i * 2] * 256 + data[i * 2 + 1]);
+            }
+
+            long newAddress = (uint)((int)((uint)(m_Numbers[6] & 0xFF00) >> 8) | ((m_Numbers[6] & 0xFF) << 8) | (((int)((uint)(m_Numbers[7] & 0xFF00) >> 8) | ((m_Numbers[7] & 0xFF) << 8)) << 16));
+            return new IPAddress(newAddress);
+        }
+
+        public static bool IsIPv6Unicast(this IPAddress address)
+        {
+            return address.IsInSubnet("[2000::]/3");
+        }
+
         public static bool IsInSubnet(this IPAddress address, string subnetMask)
         {
             if (address == null) return false;
@@ -190,14 +240,16 @@ namespace JimmikerNetwork
                 }
 
                 // Compare the prefix bits.
-                for (int maskIndex = 0; maskIndex < maskLength; maskIndex++)
+                for(int i = 0; i < 128 && i < maskLength; i += 8)
                 {
-                    if (ipAddressBits[maskIndex] != maskAddressBits[maskIndex])
+                    for(int j = 0; j < 8 && i * 8 + j < maskLength; j++)
                     {
-                        return false;
+                        if (ipAddressBits[i * 8 + 7 - j] != maskAddressBits[i * 8 + 7 - j])
+                        {
+                            return false;
+                        }
                     }
                 }
-
                 return true;
             }
 

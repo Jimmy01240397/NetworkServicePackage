@@ -25,7 +25,7 @@ namespace JimmikerNetwork
             }
         }
 
-        public Dictionary<object, SerializationData.RSAKeyPair> P2PSocketToKey { get; private set; }
+        public Dictionary<object, string> P2PSocketToKey { get; private set; }
 
         public SerializationData.RSAKeyPair P2PRSAkey { get; private set; }
 
@@ -369,10 +369,10 @@ namespace JimmikerNetwork
 
         private void SendCallback(System.IAsyncResult ar)
         {
-            Socket ns = (Socket)ar.AsyncState;
+            //Socket ns = (Socket)ar.AsyncState;
             try
             {
-                ns.EndSend(ar);
+                socket.EndSend(ar);
             }
             catch (System.Exception e)
             {
@@ -385,7 +385,12 @@ namespace JimmikerNetwork
             GetMessage?.Invoke(message);
         }
 
-        public void StartP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, bool> callback)
+        public void StartP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, PeerForP2PBase, bool> callback)
+        {
+            throw new P2PException("TCP do not allow P2P.");
+        }
+
+        public void WaitP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, PeerForP2PBase, bool> callback)
         {
             throw new P2PException("TCP do not allow P2P.");
         }
@@ -410,7 +415,7 @@ namespace JimmikerNetwork
             throw new P2PException("TCP do not allow P2P.");
         }
 
-        public void P2PPushPacket(PacketType msgid, SerializationData.RSAKeyPair Key, object remote, object remotePublic, bool NAT)
+        public void P2PPushPacket(PacketType msgid, string Key, object remote, object remotePublic, bool NAT)
         {
             throw new P2PException("TCP do not allow P2P.");
         }

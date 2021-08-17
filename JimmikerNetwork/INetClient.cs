@@ -17,7 +17,7 @@ namespace JimmikerNetwork
 
         SerializationData.RSAKeyPair P2PRSAkey { get; }
 
-        Dictionary<object, SerializationData.RSAKeyPair> P2PSocketToKey { get; }
+        Dictionary<object, string> P2PSocketToKey { get; }
         List<PeerForP2PBase> P2PSocketList { get; }
         Dictionary<EndPoint, PeerForP2PBase> P2PToPeer { get; }
 
@@ -34,8 +34,15 @@ namespace JimmikerNetwork
         /// Start P2P Connect
         /// </summary>
         /// <param name="IPPort">Connect Target</param>
-        /// <param name="callback">Connect Callback(Connect IP, Connect Public IP, Successful)</param>
-        void StartP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, bool> callback);
+        /// <param name="callback">Connect Callback(Connect IP, Connect Public IP, Connect Peer, Successful)</param>
+        void StartP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, PeerForP2PBase, bool> callback);
+
+        /// <summary>
+        /// Wait P2P Connect
+        /// </summary>
+        /// <param name="IPPort">Connect Target</param>
+        /// <param name="callback">Connect Callback(Connect IP, Connect Public IP, Connect Peer, Successful)</param>
+        void WaitP2PConnect(IPEndPoint IPPort, Action<EndPoint, EndPoint, PeerForP2PBase, bool> callback);
 
         void P2PNATPacketSend(Packet packet);
 
@@ -54,7 +61,7 @@ namespace JimmikerNetwork
         void PushPacket(PacketType msgid, string exception);
         void PushPacket(Packet stream);
 
-        void P2PPushPacket(PacketType msgid, SerializationData.RSAKeyPair Key, object remote, object remotePublic, bool NAT);
+        void P2PPushPacket(PacketType msgid, string Key, object remote, object remotePublic, bool NAT);
 
         void P2PPushPacket(PacketType msgid, string exception, object remote);
 

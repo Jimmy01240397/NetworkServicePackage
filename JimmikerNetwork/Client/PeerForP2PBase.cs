@@ -13,12 +13,12 @@ namespace JimmikerNetwork.Client
 
         private INetClient client;
 
-        protected SerializationData.RSAKeyPair Key
+        protected string Key
         {
             get
             {
-                if (client == null || socket == null) return new SerializationData.RSAKeyPair();
-                if (!client.P2PSocketToKey.ContainsKey(socket)) return new SerializationData.RSAKeyPair();
+                if (client == null || socket == null) return "";
+                if (!client.P2PSocketToKey.ContainsKey(socket)) return "";
                 return client.P2PSocketToKey[socket];
             }
         }
@@ -48,7 +48,7 @@ namespace JimmikerNetwork.Client
             using (Packet packet = new Packet(socket))
             {
                 packet.BeginWrite(PacketType.P2P_Tell);
-                packet.WriteSendData(new SendData(Code, Parameter), Key.PublicKey, _Lock ? SerializationData.LockType.RSA : SerializationData.LockType.None);
+                packet.WriteSendData(new SendData(Code, Parameter), Key, _Lock ? SerializationData.LockType.AES : SerializationData.LockType.None);
                 if (NAT)
                 {
                     client.P2PNATPacketSend(packet);

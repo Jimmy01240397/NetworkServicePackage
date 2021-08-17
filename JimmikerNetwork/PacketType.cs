@@ -12,6 +12,7 @@ namespace JimmikerNetwork
         CONNECT_SUCCESSFUL,
         CONNECTION_LOST,
         CHECK,
+        ClientDebugMessage,
         #endregion
 
         #region Server Local Type
@@ -69,7 +70,6 @@ namespace JimmikerNetwork
         /// </summary>
         P2PSendAllowTypeEnd,
         #endregion
-
 
         /// <summary>
         /// P2P type End marker (Do not use in Packet)

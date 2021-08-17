@@ -1,0 +1,11 @@
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Release\JimmikerNetwork.dll
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Release\JimmikerNetwork.pdb
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Release\JimmikerNetwork.csprojAssemblyReference.cache
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Release\JimmikerNetwork.csproj.CoreCompileInputs.cache
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Release\JimmikerNetwork.dll
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Release\JimmikerNetwork.pdb
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Release\System.Net.Http.dll
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Release\System.Net.Http.xml
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Release\zh-Hant\System.Net.Http.resources.dll
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\obj\Release\JimmikerNetwork.csproj.CopyComplete
+C:\Users\user\source\repos\JimmikerNetwork\JimmikerNetwork\bin\Release\JimmikerNetwork.xml

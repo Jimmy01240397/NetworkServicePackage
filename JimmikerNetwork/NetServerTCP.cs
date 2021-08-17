@@ -249,21 +249,38 @@ namespace JimmikerNetwork
                 PushPacket(PacketType.CONNECTION_LOST, e.ToString(), client);
                 return;
             }
-            if (msgid == PacketType.CONNECTION_LOST)
-            {
-                packet.BeginRead();
-                SendData sendData = packet.ReadSendData("");
-                PushPacket(PacketType.CONNECTION_LOST, sendData.DebugMessage, client);
-                packet.CloseStream();
-            }
-            else if (msgid > PacketType.SendAllowTypeTop && msgid < PacketType.SendAllowTypeEnd)
+            if (msgid > PacketType.SendAllowTypeTop && msgid < PacketType.SendAllowTypeEnd)
             {
                 PushPacket(packet);
             }
             else
             {
-                PushPacket(PacketType.CONNECTION_LOST, "不正確的標頭資訊 Receive", client);
-                packet.CloseStream();
+                switch (msgid)
+                {
+                    case PacketType.CONNECTION_LOST:
+                        {
+                            packet.BeginRead();
+                            SendData sendData = packet.ReadSendData("");
+                            PushPacket(PacketType.CONNECTION_LOST, sendData.DebugMessage, client);
+                            packet.CloseStream();
+                            break;
+                        }
+                    case PacketType.ClientDebugMessage:
+                        {
+                            packet.BeginRead();
+                            SendData sendData = packet.ReadSendData(SocketToKey[packet.peer]);
+                            DebugMessage("ClientDebugMessage:" + packet.peer.ToString() + " " + sendData.DebugMessage);
+
+                            packet.CloseStream();
+                            break;
+                        }
+                    default:
+                        {
+                            PushPacket(PacketType.CONNECTION_LOST, "不正確的標頭資訊 Receive", client);
+                            packet.CloseStream();
+                            break;
+                        }
+                }
             }
         }
 
