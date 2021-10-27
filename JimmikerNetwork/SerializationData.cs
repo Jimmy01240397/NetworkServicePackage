@@ -9,6 +9,9 @@ using System.Text;
 
 namespace JimmikerNetwork
 {
+    /// <summary>
+    /// A Serialization Language like json
+    /// </summary>
     public static class SerializationData
     {
         #region TypeName
@@ -74,6 +77,11 @@ namespace JimmikerNetwork
         #endregion
 
         #region ToBytes and ToObject
+        /// <summary>
+        /// object Format to SerializationData Binary
+        /// </summary>
+        /// <param name="thing">the object neet to Serialization</param>
+        /// <returns>SerializationData Binary</returns>
         public static byte[] ToBytes(object thing)
         {
             byte[] output = null;
@@ -87,6 +95,11 @@ namespace JimmikerNetwork
             return output;
         }
 
+        /// <summary>
+        /// SerializationData Binary Deserialization to object
+        /// </summary>
+        /// <param name="input">the Binary neet to Deserialization</param>
+        /// <returns>object</returns>
         public static object ToObject(byte[] input)
         {
             object output = null;
@@ -140,7 +153,7 @@ namespace JimmikerNetwork
             write.Invoke(writer, new object[] { thing });
         }
 
-        public static byte[] Typing(BinaryWriter writer, object thing)
+        static byte[] Typing(BinaryWriter writer, object thing)
         {
             if (thing != null)
             {
@@ -217,7 +230,7 @@ namespace JimmikerNetwork
             }
         }
 
-        public static object GetTyp(BinaryReader reader)
+        static object GetTyp(BinaryReader reader)
         {
             byte data = reader.ReadByte();
             object get;
@@ -276,6 +289,12 @@ namespace JimmikerNetwork
             return j.Length + 1;
         }
 
+        /// <summary>
+        /// Split string without special characters
+        /// </summary>
+        /// <param name="input">the string need to split</param>
+        /// <param name="a">split with this char</param>
+        /// <returns></returns>
         public static string[] Split(string input, char a)
         {
             List<string> vs = new List<string>();
@@ -296,6 +315,11 @@ namespace JimmikerNetwork
             return vs.ToArray();
         }
 
+        /// <summary>
+        /// format the string
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public static string FormattingString(string input)
         {
             StringBuilder stringBuilder = new StringBuilder(input);
@@ -323,6 +347,13 @@ namespace JimmikerNetwork
             return stringBuilder.ToString();
         }
 
+        /// <summary>
+        /// take a string between charA and charB
+        /// </summary>
+        /// <param name="text">parent string</param>
+        /// <param name="a">left char</param>
+        /// <param name="b">right char</param>
+        /// <returns></returns>
         public static string[] TakeString(this string text, char a, char b)
         {
             List<string> q = new List<string>(Split(text, b));
@@ -394,6 +425,12 @@ namespace JimmikerNetwork
             return vs.ToArray();
         }
 
+        /// <summary>
+        /// remove string from input
+        /// </summary>
+        /// <param name="input">parent string</param>
+        /// <param name="arg">string need remove</param>
+        /// <returns></returns>
         public static string RemoveString(this string input, params string[] arg)
         {
             for (int i = 0; i < arg.Length; i++)
@@ -519,11 +556,21 @@ namespace JimmikerNetwork
             return a;
         }
 
+        /// <summary>
+        /// object Format to SerializationData Text
+        /// </summary>
+        /// <param name="thing">object need to Format</param>
+        /// <returns>SerializationData Text</returns>
         public static string ObjectToString(object thing)
         {
             return ObjectToString(0, thing, false);
         }
 
+        /// <summary>
+        /// object Format to SerializationData Text with Wrap
+        /// </summary>
+        /// <param name="thing">object need to Format</param>
+        /// <returns>SerializationData Text</returns>
         public static string ObjectToStringWithEnter(object thing)
         {
             return ObjectToString(0, thing, true);
@@ -659,6 +706,11 @@ namespace JimmikerNetwork
             return get;
         }
 
+        /// <summary>
+        /// SerializationData Text to object
+        /// </summary>
+        /// <param name="thing">SerializationData Text</param>
+        /// <returns>object</returns>
         public static object StringToObject(string thing)
         {
             string[] vs = Split(thing, ':');
@@ -731,18 +783,34 @@ namespace JimmikerNetwork
         #endregion
 
         #region BytesToString And StringToBytes
+
+        /// <summary>
+        /// Binary Format to SerializationData Text
+        /// </summary>
+        /// <param name="input">Binary need to Format</param>
+        /// <returns>SerializationData Text</returns>
         public static string BytesToString(byte[] input)
         {
             object datas = ToObject(input);
             return ObjectToString(datas);
         }
 
+        /// <summary>
+        /// Binary Format to SerializationData Text with Wrap
+        /// </summary>
+        /// <param name="input">Binary need to Format</param>
+        /// <returns>SerializationData Text</returns>
         public static string BytesToStringWithEnter(byte[] input)
         {
             object datas = ToObject(input);
             return ObjectToStringWithEnter(datas);
         }
 
+        /// <summary>
+        /// SerializationData Text to Binary
+        /// </summary>
+        /// <param name="input">SerializationData Text</param>
+        /// <returns>Binary</returns>
         public static byte[] StringToBytes(string input)
         {
             object data = StringToObject(input);
@@ -753,17 +821,21 @@ namespace JimmikerNetwork
         #region 加密
 
         #region AES
+        /// <summary>
+        /// Generate AES Key
+        /// </summary>
         static public string GenerateAESKey()
         {
             return Guid.NewGuid().ToString().Replace("-", "");
         }
 
         /// <summary>
-        /// AES加密演算法
+        /// AES Encrypt
         /// </summary>
-        /// <param name="plainText">明文位元組</param>
-        /// <param name="strKey">金鑰</param>
-        /// <returns>返回加密後的密文位元組陣列</returns>
+        /// <param name="inputByteArray">plaintext Binary</param>
+        /// <param name="IV">Initialization Vector</param>
+        /// <param name="strKey">key</param>
+        /// <returns>return ciphertext Binary</returns>
         public static byte[] AESEncrypt(byte[] inputByteArray, byte[] IV, string strKey)
         {
             //分組加密演算法
@@ -782,11 +854,12 @@ namespace JimmikerNetwork
         }
 
         /// <summary>
-        /// AES解密
+        /// AES Decrypt
         /// </summary>
-        /// <param name="cipherText">密文位元組陣列</param>
-        /// <param name="strKey">金鑰</param>
-        /// <returns>返回解密後的位元組陣列</returns>
+        /// <param name="cipherText">ciphertext Binary</param>
+        /// <param name="IV">Initialization Vector</param>
+        /// <param name="strKey">key</param>
+        /// <returns>return plaintext Binary</returns>
         public static byte[] AESDecrypt(byte[] cipherText, byte[] IV, string strKey)
         {
             SymmetricAlgorithm des = Rijndael.Create();
@@ -803,7 +876,9 @@ namespace JimmikerNetwork
         #endregion
 
         #region RSA
-
+        /// <summary>
+        /// A struct for RSA Key Pair
+        /// </summary>
         public struct RSAKeyPair
         {
             public string PrivateKey { get; private set; }
@@ -856,12 +931,22 @@ namespace JimmikerNetwork
             return rsa.KeySize;
         }
 
+        /// <summary>
+        /// Generate RSA Key
+        /// </summary>
         static public RSAKeyPair GenerateRSAKeys(int size)
         {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(size);
             return new RSAKeyPair(rsa.ExportCspBlob(true), rsa.ExportCspBlob(false));
         }
 
+        /// <summary>
+        /// RSA Encrypt
+        /// </summary>
+        /// <param name="publicKey">public key</param>
+        /// <param name="IV">Initialization Vector</param>
+        /// <param name="content">plaintext Binary</param>
+        /// <returns>return ciphertext Binary</returns>
         static public byte[] RSAEncrypt(string publicKey, byte[] IV, byte[] content)
         {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
@@ -905,6 +990,13 @@ namespace JimmikerNetwork
             }
         }
 
+        /// <summary>
+        /// RSA Decrypt
+        /// </summary>
+        /// <param name="privateKey">private Key</param>
+        /// <param name="IV">Initialization Vector</param>
+        /// <param name="encryptedContent">ciphertext Binary</param>
+        /// <returns>return plaintext Binary</returns>
         static public byte[] RSADecrypt(string privateKey, byte[] IV, byte[] encryptedContent)
         {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
@@ -950,7 +1042,14 @@ namespace JimmikerNetwork
             }
         }
 
-        static public byte[] RSASignData(string privateKey, byte[] content, object halg)
+        /// <summary>
+        /// RSA Signature 
+        /// </summary>
+        /// <param name="privateKey">private key</param>
+        /// <param name="content">plaintext Binary</param>
+        /// <param name="halg">Hash Algorithm</param>
+        /// <returns>return Signature Binary</returns>
+        static public byte[] RSASignData(string privateKey, byte[] content, HashAlgorithm halg)
         {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.ImportCspBlob(Convert.FromBase64String(privateKey));
@@ -960,7 +1059,15 @@ namespace JimmikerNetwork
             return encryptString;
         }
 
-        static public bool RSAVerifyData(string publicKey, byte[] content, byte[] signature, object halg)
+        /// <summary>
+        /// RSA Verify
+        /// </summary>
+        /// <param name="publicKey">private key</param>
+        /// <param name="content">plaintext Binary</param>
+        /// <param name="signature">signature Binary</param>
+        /// <param name="halg">Hash Algorithm</param>
+        /// <returns>is verify</returns>
+        static public bool RSAVerifyData(string publicKey, byte[] content, byte[] signature, HashAlgorithm halg)
         {
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
             rsa.ImportCspBlob(Convert.FromBase64String(publicKey));
@@ -979,6 +1086,13 @@ namespace JimmikerNetwork
             RSA,
         }
 
+        /// <summary>
+        /// Encrypt Data with specified encryption algorithm
+        /// </summary>
+        /// <param name="bs">plaintext Binary</param>
+        /// <param name="key">key</param>
+        /// <param name="_Lock">encryption algorithm</param>
+        /// <returns>return ciphertext Binary</returns>
         static public byte[] Lock(byte[] bs, string key, LockType _Lock)
         {
             byte[] encryptBytes = null;
@@ -1035,6 +1149,12 @@ namespace JimmikerNetwork
             return b;
         }
 
+        /// <summary>
+        /// Decrypt Data
+        /// </summary>
+        /// <param name="bs">ciphertext Binary</param>
+        /// <param name="key">key</param>
+        /// <returns>return plaintext Binary</returns>
         static public byte[] UnLock(byte[] bs, string key)
         {
             const int TypeLen = 1;
@@ -1097,7 +1217,11 @@ namespace JimmikerNetwork
         #endregion
 
         #region 壓縮
-        // 寫字串
+        /// <summary>
+        /// Compress Binary
+        /// </summary>
+        /// <param name="_bytes">Binary after compress</param>
+        /// <param name="bytes">Binary need to compress</param>
         static public void Compress(out byte[] _bytes, byte[] bytes)
         {
             MemoryStream stream;
@@ -1135,7 +1259,13 @@ namespace JimmikerNetwork
             _bytes = stream.ToArray();
         }
 
-        // 讀取一個字串
+        /// <summary>
+        /// Decompress Binary
+        /// </summary>
+        /// <param name="_bytes">Binary need to decompress</param>
+        /// <param name="index">start index</param>
+        /// <param name="str">Binary after decompress</param>
+        /// <param name="length">Binary length</param>
         static public void Decompress(byte[] _bytes, int index, out byte[] str, out int length)
         {
             MemoryStream stream = new MemoryStream(_bytes);

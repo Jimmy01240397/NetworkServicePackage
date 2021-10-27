@@ -8,9 +8,23 @@ namespace JimmikerNetwork
 {
     public struct SendData
     {
+        /// <summary>
+        /// Your commant code.
+        /// </summary>
         public byte Code;
+        /// <summary>
+        /// Your primary data want to send.
+        /// </summary>
         public object Parameters;
+
+        /// <summary>
+        /// Return Code code (for Response)
+        /// </summary>
         public short ReturnCode;
+
+        /// <summary>
+        /// Return Debug Message (for Response)
+        /// </summary>
         public string DebugMessage;
 
         public object this[byte key]
@@ -114,12 +128,25 @@ namespace JimmikerNetwork
         }
         #endregion
 
+        /// <summary>
+        /// transform everything to binary
+        /// </summary>
+        /// <param name="key">encrypt key</param>
+        /// <param name="_Lock">encrypt type</param>
+        /// <returns>binary</returns>
         public byte[] AllToByte(string key, SerializationData.LockType _Lock = SerializationData.LockType.None)
         {
             object[] datas = new object[] { Code, Parameters, ReturnCode, DebugMessage };
             return SerializationData.Lock(SerializationData.ToBytes(datas), key, _Lock);
         }
 
+        /// <summary>
+        /// transform everything to SendData
+        /// </summary>
+        /// <param name="b">binary</param>
+        /// <param name="index">transform from</param>
+        /// <param name="length">transform length</param>
+        /// <param name="key">decrypt key</param>
         public void ByteToAll(byte[] b, int index, out int length, string key)
         {
             if (b.Length <= index)
@@ -141,11 +168,11 @@ namespace JimmikerNetwork
             catch (System.Exception e)
             {
                 SendData g = new SendData(0, new Dictionary<byte, object> { { 0, "錯誤" } }, 0, e.ToString());
-                AllWriteIn((SendData)g);
+                CopyIn((SendData)g);
             }
         }
 
-        public void AllWriteIn(SendData read)
+        public void CopyIn(SendData read)
         {
             Code = read.Code;
             Parameters = read.Parameters;
