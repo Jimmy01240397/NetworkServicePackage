@@ -27,7 +27,7 @@ namespace JimmikerNetwork.Server
 
         public int Port { get; private set; }
 
-        public event Action<MessageType, string> GetMessage;
+        //public event Action<MessageType, string> GetMessage;
 
         Thread NetThread;
         INetServer server;
@@ -74,11 +74,11 @@ namespace JimmikerNetwork.Server
             server.GetMessage += server_GetMessage;
             if (server.CreateServer(IP, Port, out string w))
             {
-                GetMessage?.Invoke(MessageType.ServerStartSuccess, w);
+                DebugReturn(MessageType.ServerStartSuccess, w);
             }
             else
             {
-                GetMessage?.Invoke(MessageType.DebugMessage, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + "：" + w);
+                DebugReturn(MessageType.DebugMessage, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + "：" + w);
             }
             Setup();
         }
@@ -136,7 +136,7 @@ namespace JimmikerNetwork.Server
                         {
                             if (!ToPeer.ContainsKey(remote))
                             {
-                                GetMessage?.Invoke(MessageType.ConnectSuccess, remote.ToString());
+                                DebugReturn(MessageType.ConnectSuccess, remote.ToString());
                                 server.ConnectSuccessful(AddPeerBase, packet);
                             }
                             break;
@@ -146,7 +146,7 @@ namespace JimmikerNetwork.Server
                             if (ToPeer.ContainsKey(remote))
                             {
                                 PeerBase peer = ToPeer[remote];
-                                GetMessage?.Invoke(MessageType.ConnectLost, remote.ToString() + ", error: " + packet.state);
+                                DebugReturn(MessageType.ConnectLost, remote.ToString() + ", error: " + packet.state);
                                 peer.OnDisconnect();
                                 server.Disconnect(packet.peer);
                                 peer = null;
@@ -182,6 +182,11 @@ namespace JimmikerNetwork.Server
             
         }
 
+        protected virtual void DebugReturn(MessageType messageType, string msg)
+        {
+
+        }
+
         public void Disconnect()
         {
             for (int i = 0; i < SocketList.Count; i++)
@@ -199,12 +204,12 @@ namespace JimmikerNetwork.Server
             server.Close();
             run = false;
             NetThread = null;
-            GetMessage?.Invoke(MessageType.ServerClose, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + " " + "成功關閉伺服器");
+            DebugReturn(MessageType.ServerClose, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + " " + "成功關閉伺服器");
         }
 
         private void server_GetMessage(string w)
         {
-            GetMessage?.Invoke(MessageType.DebugMessage, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + "：" + w);
+            DebugReturn(MessageType.DebugMessage, DateTime.Now.ToShortDateString() + "  " + DateTime.Now.ToString("tt hh:mm:ss") + "：" + w);
         }
     }
 }
