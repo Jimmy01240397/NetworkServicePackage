@@ -166,7 +166,6 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region On CONNECT
-                onSend(PacketType.CONNECT_SUCCESSFUL, AESkey, SerializationData.LockType.AES, new SendData(0, "On Connect"));
                 PushPacket(PacketType.CONNECT_SUCCESSFUL, AESkey, client);
 
                 byte[] bytes = new byte[Packet.header_length];
@@ -181,6 +180,13 @@ namespace JimmikerNetwork
             PeerBase peer = AddPeerFunc(packet.peer, this);
             SocketList.Add(peer);
             ToPeer.Add(((Socket)packet.peer).RemoteEndPoint, peer);
+
+            using (Packet newpacket = new Packet(packet.peer))
+            {
+                packet.BeginWrite(PacketType.CONNECT_SUCCESSFUL);
+                packet.WriteSendData(new SendData(0, "On Connect"), (string)packet.state, SerializationData.LockType.AES);
+                Send(packet, packet.peer);
+            }
         }
 
         public void Close()

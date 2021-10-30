@@ -229,7 +229,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region On CONNECT
-                onSend(PacketType.CONNECT_SUCCESSFUL, AESkey, SerializationData.LockType.AES, new SendData(0, "On Connect"));
+                //onSend(PacketType.CONNECT_SUCCESSFUL, AESkey, SerializationData.LockType.AES, new SendData(0, "On Connect"));
                 PushPacket(PacketType.CONNECT_SUCCESSFUL, AESkey, client);
 
                 lock (OnListenClient)
@@ -250,6 +250,12 @@ namespace JimmikerNetwork
             lock (checklock)
             {
                 clientcheck.Add((EndPoint)packet.peer, true);
+            }
+            using (Packet newpacket = new Packet(packet.peer))
+            {
+                packet.BeginWrite(PacketType.CONNECT_SUCCESSFUL);
+                packet.WriteSendData(new SendData(0, "On Connect"), (string)packet.state, SerializationData.LockType.AES);
+                Send(packet, packet.peer);
             }
         }
 
