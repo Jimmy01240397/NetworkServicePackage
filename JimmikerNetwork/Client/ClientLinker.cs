@@ -217,7 +217,14 @@ namespace JimmikerNetwork.Client
                     {
                         case ProtocolType.Tcp:
                             {
-                                remote = ((Socket)packet.peer).RemoteEndPoint;
+                                if (((Socket)packet.peer).Connected)
+                                {
+                                    remote = ((Socket)packet.peer).RemoteEndPoint;
+                                }
+                                else
+                                {
+                                    remote = new IPEndPoint(IPAddress.Any, 0);
+                                }
                                 break;
                             }
                         case ProtocolType.Udp:

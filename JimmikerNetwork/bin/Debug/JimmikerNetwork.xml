@@ -76,21 +76,238 @@
             P2P type End marker (Do not use in Packet)
             </summary>
         </member>
+        <member name="F:JimmikerNetwork.SendData.Code">
+            <summary>
+            Your commant code.
+            </summary>
+        </member>
+        <member name="F:JimmikerNetwork.SendData.Parameters">
+            <summary>
+            Your primary data want to send.
+            </summary>
+        </member>
+        <member name="F:JimmikerNetwork.SendData.ReturnCode">
+            <summary>
+            Return Code code (for Response)
+            </summary>
+        </member>
+        <member name="F:JimmikerNetwork.SendData.DebugMessage">
+            <summary>
+            Return Debug Message (for Response)
+            </summary>
+        </member>
+        <member name="M:JimmikerNetwork.SendData.AllToByte(System.String,JimmikerNetwork.SerializationData.LockType)">
+            <summary>
+            transform everything to binary
+            </summary>
+            <param name="key">encrypt key</param>
+            <param name="_Lock">encrypt type</param>
+            <returns>binary</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SendData.ByteToAll(System.Byte[],System.Int32,System.Int32@,System.String)">
+            <summary>
+            transform everything to SendData
+            </summary>
+            <param name="b">binary</param>
+            <param name="index">transform from</param>
+            <param name="length">transform length</param>
+            <param name="key">decrypt key</param>
+        </member>
+        <member name="T:JimmikerNetwork.SerializationData">
+            <summary>
+            A Serialization Language like json
+            </summary>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.ToBytes(System.Object)">
+            <summary>
+            object Format to SerializationData Binary
+            </summary>
+            <param name="thing">the object neet to Serialization</param>
+            <returns>SerializationData Binary</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.ToObject(System.Byte[])">
+            <summary>
+            SerializationData Binary Deserialization to object
+            </summary>
+            <param name="input">the Binary neet to Deserialization</param>
+            <returns>object</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.Split(System.String,System.Char)">
+            <summary>
+            Split string without special characters
+            </summary>
+            <param name="input">the string need to split</param>
+            <param name="a">split with this char</param>
+            <returns></returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.FormattingString(System.String)">
+            <summary>
+            format the string
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.TakeString(System.String,System.Char,System.Char)">
+            <summary>
+            take a string between charA and charB
+            </summary>
+            <param name="text">parent string</param>
+            <param name="a">left char</param>
+            <param name="b">right char</param>
+            <returns></returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.RemoveString(System.String,System.String[])">
+            <summary>
+            remove string from input
+            </summary>
+            <param name="input">parent string</param>
+            <param name="arg">string need remove</param>
+            <returns></returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.ObjectToString(System.Object)">
+            <summary>
+            object Format to SerializationData Text
+            </summary>
+            <param name="thing">object need to Format</param>
+            <returns>SerializationData Text</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.ObjectToStringWithEnter(System.Object)">
+            <summary>
+            object Format to SerializationData Text with Wrap
+            </summary>
+            <param name="thing">object need to Format</param>
+            <returns>SerializationData Text</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.StringToObject(System.String)">
+            <summary>
+            SerializationData Text to object
+            </summary>
+            <param name="thing">SerializationData Text</param>
+            <returns>object</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.BytesToString(System.Byte[])">
+            <summary>
+            Binary Format to SerializationData Text
+            </summary>
+            <param name="input">Binary need to Format</param>
+            <returns>SerializationData Text</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.BytesToStringWithEnter(System.Byte[])">
+            <summary>
+            Binary Format to SerializationData Text with Wrap
+            </summary>
+            <param name="input">Binary need to Format</param>
+            <returns>SerializationData Text</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.StringToBytes(System.String)">
+            <summary>
+            SerializationData Text to Binary
+            </summary>
+            <param name="input">SerializationData Text</param>
+            <returns>Binary</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.GenerateAESKey">
+            <summary>
+            Generate AES Key
+            </summary>
+        </member>
         <member name="M:JimmikerNetwork.SerializationData.AESEncrypt(System.Byte[],System.Byte[],System.String)">
             <summary>
-            AES加密演算法
+            AES Encrypt
             </summary>
-            <param name="plainText">明文位元組</param>
-            <param name="strKey">金鑰</param>
-            <returns>返回加密後的密文位元組陣列</returns>
+            <param name="inputByteArray">plaintext Binary</param>
+            <param name="IV">Initialization Vector</param>
+            <param name="strKey">key</param>
+            <returns>return ciphertext Binary</returns>
         </member>
         <member name="M:JimmikerNetwork.SerializationData.AESDecrypt(System.Byte[],System.Byte[],System.String)">
             <summary>
-            AES解密
+            AES Decrypt
             </summary>
-            <param name="cipherText">密文位元組陣列</param>
-            <param name="strKey">金鑰</param>
-            <returns>返回解密後的位元組陣列</returns>
+            <param name="cipherText">ciphertext Binary</param>
+            <param name="IV">Initialization Vector</param>
+            <param name="strKey">key</param>
+            <returns>return plaintext Binary</returns>
+        </member>
+        <member name="T:JimmikerNetwork.SerializationData.RSAKeyPair">
+            <summary>
+            A struct for RSA Key Pair
+            </summary>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.GenerateRSAKeys(System.Int32)">
+            <summary>
+            Generate RSA Key
+            </summary>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.RSAEncrypt(System.String,System.Byte[],System.Byte[])">
+            <summary>
+            RSA Encrypt
+            </summary>
+            <param name="publicKey">public key</param>
+            <param name="IV">Initialization Vector</param>
+            <param name="content">plaintext Binary</param>
+            <returns>return ciphertext Binary</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.RSADecrypt(System.String,System.Byte[],System.Byte[])">
+            <summary>
+            RSA Decrypt
+            </summary>
+            <param name="privateKey">private Key</param>
+            <param name="IV">Initialization Vector</param>
+            <param name="encryptedContent">ciphertext Binary</param>
+            <returns>return plaintext Binary</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.RSASignData(System.String,System.Byte[],System.Security.Cryptography.HashAlgorithm)">
+            <summary>
+            RSA Signature 
+            </summary>
+            <param name="privateKey">private key</param>
+            <param name="content">plaintext Binary</param>
+            <param name="halg">Hash Algorithm</param>
+            <returns>return Signature Binary</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.RSAVerifyData(System.String,System.Byte[],System.Byte[],System.Security.Cryptography.HashAlgorithm)">
+            <summary>
+            RSA Verify
+            </summary>
+            <param name="publicKey">private key</param>
+            <param name="content">plaintext Binary</param>
+            <param name="signature">signature Binary</param>
+            <param name="halg">Hash Algorithm</param>
+            <returns>is verify</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.Lock(System.Byte[],System.String,JimmikerNetwork.SerializationData.LockType)">
+            <summary>
+            Encrypt Data with specified encryption algorithm
+            </summary>
+            <param name="bs">plaintext Binary</param>
+            <param name="key">key</param>
+            <param name="_Lock">encryption algorithm</param>
+            <returns>return ciphertext Binary</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.UnLock(System.Byte[],System.String)">
+            <summary>
+            Decrypt Data
+            </summary>
+            <param name="bs">ciphertext Binary</param>
+            <param name="key">key</param>
+            <returns>return plaintext Binary</returns>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.Compress(System.Byte[]@,System.Byte[])">
+            <summary>
+            Compress Binary
+            </summary>
+            <param name="_bytes">Binary after compress</param>
+            <param name="bytes">Binary need to compress</param>
+        </member>
+        <member name="M:JimmikerNetwork.SerializationData.Decompress(System.Byte[],System.Int32,System.Byte[]@,System.Int32@)">
+            <summary>
+            Decompress Binary
+            </summary>
+            <param name="_bytes">Binary need to decompress</param>
+            <param name="index">start index</param>
+            <param name="str">Binary after decompress</param>
+            <param name="length">Binary length</param>
         </member>
         <member name="M:JimmikerNetwork.TraceRoute.GetTraceRoute(System.String,System.Int32)">
             <summary>
