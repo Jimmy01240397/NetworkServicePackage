@@ -585,7 +585,14 @@ namespace JimmikerNetwork
                 {
                     if (client != null)
                     {
-                        listener.BeginSendTo(bts.Bytes, 0, bts.Length, SocketFlags.None, client, SendCallback, client);
+                        try
+                        {
+                            listener.BeginSendTo(bts.Bytes, 0, bts.Length, SocketFlags.None, client, SendCallback, client);
+                        }
+                        catch(Exception)
+                        {
+                            return false;
+                        }
                         return true;
                     }
                 }

@@ -297,7 +297,14 @@ namespace JimmikerNetwork
             {
                 lock (client)
                 {
-                    client.BeginSend(bts.Bytes, 0, bts.Length, SocketFlags.None, SendCallback, client);
+                    try
+                    {
+                        client.BeginSend(bts.Bytes, 0, bts.Length, SocketFlags.None, SendCallback, client);
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
                     return true;
                 }
             }
