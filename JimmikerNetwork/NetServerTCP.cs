@@ -20,6 +20,7 @@ namespace JimmikerNetwork
         public List<PeerBase> SocketList { get; private set; }
         public List<Packet> Packets { get; private set; }
         public Dictionary<EndPoint, PeerBase> ToPeer { get; private set; }
+        public Dictionary<Socket, EndPoint> SocketToEndPoint { get; private set; }
         public Dictionary<object, string> SocketToKey { get; private set; }
 
         public event Action<string> GetMessage;
@@ -41,6 +42,7 @@ namespace JimmikerNetwork
             SocketList = new List<PeerBase>();
             Packets = new List<Packet>();
             ToPeer = new Dictionary<EndPoint, PeerBase>();
+            SocketToEndPoint = new Dictionary<Socket, EndPoint>();
             SocketToKey = new Dictionary<object, string>();
         }
 
@@ -179,6 +181,7 @@ namespace JimmikerNetwork
             SocketToKey.Add(packet.peer, (string)packet.state);
             PeerBase peer = AddPeerFunc(packet.peer, this);
             SocketList.Add(peer);
+            SocketToEndPoint.Add(((Socket)packet.peer), ((Socket)packet.peer).RemoteEndPoint);
             ToPeer.Add(((Socket)packet.peer).RemoteEndPoint, peer);
 
             using (Packet newpacket = new Packet(packet.peer))
@@ -208,6 +211,7 @@ namespace JimmikerNetwork
             SocketList.Clear();
             Packets.Clear();
             ToPeer.Clear();
+            SocketToEndPoint.Clear();
             SocketToKey.Clear();
 
             GetMessage = null;
@@ -226,7 +230,7 @@ namespace JimmikerNetwork
             {
                 int len = client.EndReceive(ar);
 
-                if (!SocketList.Contains(ToPeer[client.RemoteEndPoint]))
+                if (!SocketList.Contains(ToPeer[SocketToEndPoint[client]]))
                 {
                     PushPacket(PacketType.CONNECTION_LOST, "連線已關閉", client);
                     return;
@@ -347,22 +351,22 @@ namespace JimmikerNetwork
         {
             if (socket != null)
             {
-                if (ToPeer.ContainsKey(((Socket)socket).RemoteEndPoint))
+                if(SocketToEndPoint.ContainsKey((Socket)socket))
                 {
-                    if (SocketList.Contains(ToPeer[((Socket)socket).RemoteEndPoint]))
+                    if (ToPeer.ContainsKey(SocketToEndPoint[(Socket)socket]))
                     {
-                        SocketList.Remove(ToPeer[((Socket)socket).RemoteEndPoint]);
+                        if (SocketList.Contains(ToPeer[SocketToEndPoint[(Socket)socket]]))
+                        {
+                            SocketList.Remove(ToPeer[SocketToEndPoint[(Socket)socket]]);
+                        }
                     }
-                }
-                if (SocketToKey.ContainsKey(socket))
-                {
-                    SocketToKey.Remove(socket);
-                }
-                if (((Socket)socket).RemoteEndPoint != null)
-                {
-                    if (ToPeer.ContainsKey(((Socket)socket).RemoteEndPoint))
+                    if (SocketToKey.ContainsKey(socket))
                     {
-                        ToPeer.Remove(((Socket)socket).RemoteEndPoint);
+                        SocketToKey.Remove(socket);
+                    }
+                    if (ToPeer.ContainsKey(SocketToEndPoint[(Socket)socket]))
+                    {
+                        ToPeer.Remove(SocketToEndPoint[(Socket)socket]);
                     }
                 }
 
@@ -370,7 +374,7 @@ namespace JimmikerNetwork
                 {
                     ((Socket)socket).Shutdown(SocketShutdown.Both);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     GetMessage(e.Message);
                 }

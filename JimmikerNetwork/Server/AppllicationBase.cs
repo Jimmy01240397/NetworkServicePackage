@@ -121,7 +121,10 @@ namespace JimmikerNetwork.Server
                 {
                     case ProtocolType.Tcp:
                         {
-                            remote = ((Socket)packet.peer).RemoteEndPoint;
+                            if (((Socket)packet.peer).RemoteEndPoint != null)
+                                remote = ((Socket)packet.peer).RemoteEndPoint;
+                            else if(((NetServerTCP)server).SocketToEndPoint.ContainsKey((Socket)packet.peer))
+                                remote = ((NetServerTCP)server).SocketToEndPoint[(Socket)packet.peer];
                             break;
                         }
                     case ProtocolType.Udp:
@@ -134,7 +137,7 @@ namespace JimmikerNetwork.Server
                 {
                     case PacketType.CONNECT_SUCCESSFUL:
                         {
-                            if (!ToPeer.ContainsKey(remote))
+                            if (remote != null) if (!ToPeer.ContainsKey(remote))
                             {
                                 DebugReturn(MessageType.ConnectSuccess, remote.ToString());
                                 server.ConnectSuccessful(AddPeerBase, packet);
@@ -143,7 +146,7 @@ namespace JimmikerNetwork.Server
                         }
                     case PacketType.CONNECTION_LOST:
                         {
-                            if (ToPeer.ContainsKey(remote))
+                            if (remote != null) if (ToPeer.ContainsKey(remote))
                             {
                                 PeerBase peer = ToPeer[remote];
                                 DebugReturn(MessageType.ConnectLost, remote.ToString() + ", error: " + packet.state);
@@ -155,7 +158,7 @@ namespace JimmikerNetwork.Server
                         }
                     case PacketType.Request:
                         {
-                            if (ToPeer.ContainsKey(remote))
+                            if(remote != null) if (ToPeer.ContainsKey(remote))
                             {
                                 PeerBase peer = ToPeer[remote];
                                 string key = server.SocketToKey[packet.peer];

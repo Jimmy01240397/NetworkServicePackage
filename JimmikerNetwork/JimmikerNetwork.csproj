@@ -51,6 +51,7 @@
     <Compile Include="Client\LinkCobe.cs" />
     <Compile Include="Client\P2PCode.cs" />
     <Compile Include="Client\PeerForP2PBase.cs" />
+    <Compile Include="EncryptAndCompress.cs" />
     <Compile Include="INetClient.cs" />
     <Compile Include="INetServer.cs" />
     <Compile Include="NetClientTCP.cs" />
