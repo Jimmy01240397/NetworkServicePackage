@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Chuon;
 
 namespace JimmikerNetwork
 {
@@ -134,10 +135,10 @@ namespace JimmikerNetwork
         /// <param name="key">encrypt key</param>
         /// <param name="_Lock">encrypt type</param>
         /// <returns>binary</returns>
-        public byte[] AllToByte(string key, SerializationData.LockType _Lock = SerializationData.LockType.None)
+        public byte[] AllToByte(string key, EncryptAndCompress.LockType _Lock = EncryptAndCompress.LockType.None)
         {
             object[] datas = new object[] { Code, Parameters, ReturnCode, DebugMessage };
-            return SerializationData.Lock(SerializationData.ToBytes(datas), key, _Lock);
+            return EncryptAndCompress.Lock(new ChuonBinary(datas).ToArray(), key, _Lock);
         }
 
         /// <summary>
@@ -154,12 +155,11 @@ namespace JimmikerNetwork
                 length = 0;
                 return;
             }
-            byte[] a;
-            SerializationData.Decompress(b, index, out a, out length);
-            byte[] bytes = SerializationData.UnLock(a, key);
+            byte[] a = EncryptAndCompress.Decompress(b, index, out length);
+            byte[] bytes = EncryptAndCompress.UnLock(a, key);
             try
             {
-                object[] datas = (object[])SerializationData.ToObject(bytes);
+                object[] datas = (object[])new ChuonBinary(bytes).ToObject();
                 Code = (byte)datas[0];
                 Parameters = datas[1];
                 ReturnCode = (short)datas[2];

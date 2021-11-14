@@ -84,15 +84,15 @@ namespace JimmikerNetwork
             writer.Write((byte)msdid);            
         }
 
-        public void WriteSendData(SendData sendData, string key, SerializationData.LockType _Lock)
+        public void WriteSendData(SendData sendData, string key, EncryptAndCompress.LockType _Lock)
         {
             byte[] bs = sendData.AllToByte(key, _Lock);
             writer.Write(bs);
         }
 
-        public void WriteSendDataByte(byte[] response, string key, SerializationData.LockType _Lock)
+        public void WriteSendDataByte(byte[] response, string key, EncryptAndCompress.LockType _Lock)
         {
-            byte[] bs = SerializationData.Lock(response, key, _Lock);
+            byte[] bs = EncryptAndCompress.Lock(response, key, _Lock);
             writer.Write(bs);
         }
 

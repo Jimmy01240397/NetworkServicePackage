@@ -27,12 +27,12 @@ namespace JimmikerNetwork
 
         public Dictionary<object, string> P2PSocketToKey { get; private set; }
 
-        public SerializationData.RSAKeyPair P2PRSAkey { get; private set; }
+        public EncryptAndCompress.RSAKeyPair P2PRSAkey { get; private set; }
 
         public List<PeerForP2PBase> P2PSocketList { get; private set; }
         public Dictionary<EndPoint, PeerForP2PBase> P2PToPeer { get; private set; }
 
-        public SerializationData.RSAKeyPair RSAkey { get; private set; }
+        public EncryptAndCompress.RSAKeyPair RSAkey { get; private set; }
 
         public string AESkey { get; private set; }
 
@@ -161,7 +161,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Set Send func
-                void onSend(PacketType sendType, string key, SerializationData.LockType lockType, SendData send)
+                void onSend(PacketType sendType, string key, EncryptAndCompress.LockType lockType, SendData send)
                 {
                     using (Packet packet = new Packet(socket))
                     {
@@ -177,12 +177,12 @@ namespace JimmikerNetwork
                 if (sendData == new SendData())
                     return;
 
-                RSAkey = new SerializationData.RSAKeyPair((byte[])sendData.Parameters);
+                RSAkey = new EncryptAndCompress.RSAKeyPair((byte[])sendData.Parameters);
                 #endregion
 
                 #region Generate And Send AES Key
-                AESkey = SerializationData.GenerateAESKey();
-                onSend(PacketType.AESKEY, RSAkey.PublicKey, SerializationData.LockType.RSA, new SendData(0, AESkey));
+                AESkey = EncryptAndCompress.GenerateAESKey();
+                onSend(PacketType.AESKEY, RSAkey.PublicKey, EncryptAndCompress.LockType.RSA, new SendData(0, AESkey));
                 #endregion
 
                 #region Check AES Key
@@ -192,7 +192,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Send CONNECT_SUCCESSFUL
-                onSend(PacketType.CONNECT_SUCCESSFUL, AESkey, SerializationData.LockType.AES, new SendData(0, "Connect successful"));
+                onSend(PacketType.CONNECT_SUCCESSFUL, AESkey, EncryptAndCompress.LockType.AES, new SendData(0, "Connect successful"));
                 #endregion
 
                 #region On CONNECT
@@ -321,7 +321,7 @@ namespace JimmikerNetwork
 
             Packets.Clear();
             AESkey = null;
-            RSAkey = new SerializationData.RSAKeyPair();
+            RSAkey = new EncryptAndCompress.RSAKeyPair();
         }
 
         public void PushPacket(PacketType msgid, string exception)

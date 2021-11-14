@@ -12,10 +12,10 @@ namespace JimmikerNetwork
     {
         bool EnableP2P { get; set; }
 
-        SerializationData.RSAKeyPair RSAkey { get; }
+        EncryptAndCompress.RSAKeyPair RSAkey { get; }
         string AESkey { get; }
 
-        SerializationData.RSAKeyPair P2PRSAkey { get; }
+        EncryptAndCompress.RSAKeyPair P2PRSAkey { get; }
 
         Dictionary<object, string> P2PSocketToKey { get; }
         List<PeerForP2PBase> P2PSocketList { get; }

@@ -48,7 +48,7 @@ namespace JimmikerNetwork.Client
             using (Packet packet = new Packet(socket))
             {
                 packet.BeginWrite(PacketType.P2P_Tell);
-                packet.WriteSendData(new SendData(Code, Parameter), Key, _Lock ? SerializationData.LockType.AES : SerializationData.LockType.None);
+                packet.WriteSendData(new SendData(Code, Parameter), Key, _Lock ? EncryptAndCompress.LockType.AES : EncryptAndCompress.LockType.None);
                 if (NAT)
                 {
                     client.P2PNATPacketSend(packet);

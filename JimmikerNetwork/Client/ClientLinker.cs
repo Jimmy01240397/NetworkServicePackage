@@ -186,7 +186,7 @@ namespace JimmikerNetwork.Client
                 using (Packet packet = new Packet(client.RemoteEndPoint))
                 {
                     packet.BeginWrite(PacketType.Request);
-                    packet.WriteSendData(new SendData(Code, Parameter), Key, _Lock ? SerializationData.LockType.AES : SerializationData.LockType.None);
+                    packet.WriteSendData(new SendData(Code, Parameter), Key, _Lock ? EncryptAndCompress.LockType.AES : EncryptAndCompress.LockType.None);
                     client.Send(packet);
                 }
             }
@@ -199,7 +199,7 @@ namespace JimmikerNetwork.Client
                 using (Packet packet = new Packet(client.RemoteEndPoint))
                 {
                     packet.BeginWrite(PacketType.ClientDebugMessage);
-                    packet.WriteSendData(new SendData(0, null, 0, message), Key, SerializationData.LockType.AES);
+                    packet.WriteSendData(new SendData(0, null, 0, message), Key, EncryptAndCompress.LockType.AES);
                     client.Send(packet);
                 }
             }

@@ -15,7 +15,7 @@ namespace JimmikerNetwork
 
         public ProtocolType type { get; private set; } = ProtocolType.Tcp;
 
-        public SerializationData.RSAKeyPair RSAkey { get; private set; }
+        public EncryptAndCompress.RSAKeyPair RSAkey { get; private set; }
 
         public List<PeerBase> SocketList { get; private set; }
         public List<Packet> Packets { get; private set; }
@@ -51,7 +51,7 @@ namespace JimmikerNetwork
             IPEndPoint ipe = new IPEndPoint(ip, listenPort);
             try
             {
-                RSAkey = SerializationData.GenerateRSAKeys(2048);
+                RSAkey = EncryptAndCompress.GenerateRSAKeys(2048);
                 listener = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
                 listener.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
                 listener.Bind(ipe);
@@ -61,7 +61,7 @@ namespace JimmikerNetwork
             }
             catch(SocketException)
             {
-                RSAkey = new SerializationData.RSAKeyPair();
+                RSAkey = new EncryptAndCompress.RSAKeyPair();
                 a = ipe.ToString() + "無法建立伺服器";
                 return false;
             }
@@ -134,7 +134,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Set Send func
-                void onSend(PacketType sendType, string key, SerializationData.LockType lockType, SendData send)
+                void onSend(PacketType sendType, string key, EncryptAndCompress.LockType lockType, SendData send)
                 {
                     using (Packet packet = new Packet(client))
                     {
@@ -146,7 +146,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Send RSA key
-                onSend(PacketType.RSAKEY, "", SerializationData.LockType.None, new SendData(0, RSAkey.PublicKeyBytes));
+                onSend(PacketType.RSAKEY, "", EncryptAndCompress.LockType.None, new SendData(0, RSAkey.PublicKeyBytes));
                 #endregion
 
                 #region Get AES key
@@ -158,7 +158,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Send AES Check
-                onSend(PacketType.AESKEY, AESkey, SerializationData.LockType.AES, new SendData(0, "Connect check"));
+                onSend(PacketType.AESKEY, AESkey, EncryptAndCompress.LockType.AES, new SendData(0, "Connect check"));
                 #endregion
 
                 #region Get CONNECT_SUCCESSFUL
@@ -187,7 +187,7 @@ namespace JimmikerNetwork
             using (Packet newpacket = new Packet(packet.peer))
             {
                 packet.BeginWrite(PacketType.CONNECT_SUCCESSFUL);
-                packet.WriteSendData(new SendData(0, "On Connect"), (string)packet.state, SerializationData.LockType.AES);
+                packet.WriteSendData(new SendData(0, "On Connect"), (string)packet.state, EncryptAndCompress.LockType.AES);
                 Send(packet, packet.peer);
             }
         }
@@ -216,7 +216,7 @@ namespace JimmikerNetwork
 
             GetMessage = null;
 
-            RSAkey = new SerializationData.RSAKeyPair();
+            RSAkey = new EncryptAndCompress.RSAKeyPair();
         }
 
         private void Receive(IAsyncResult ar)

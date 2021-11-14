@@ -16,7 +16,7 @@ namespace JimmikerNetwork
 
         public ProtocolType type { get; private set; } = ProtocolType.Udp;
 
-        public SerializationData.RSAKeyPair RSAkey { get; private set; }
+        public EncryptAndCompress.RSAKeyPair RSAkey { get; private set; }
 
         public List<PeerBase> SocketList { get; private set; }
         public List<Packet> Packets { get; private set; }
@@ -90,7 +90,7 @@ namespace JimmikerNetwork
             IPEndPoint ipe = new IPEndPoint(ip, listenPort);
             try
             {
-                RSAkey = SerializationData.GenerateRSAKeys(2048);
+                RSAkey = EncryptAndCompress.GenerateRSAKeys(2048);
                 listener = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, ProtocolType.Udp);
                 listener.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
                 if ((byte)Environment.OSVersion.Platform >= 0 && (byte)Environment.OSVersion.Platform <= 3)
@@ -106,7 +106,7 @@ namespace JimmikerNetwork
             }
             catch (SocketException)
             {
-                RSAkey = new SerializationData.RSAKeyPair();
+                RSAkey = new EncryptAndCompress.RSAKeyPair();
                 a = ipe.ToString() + "無法建立伺服器";
                 return false;
             }
@@ -195,7 +195,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Set Send func
-                void onSend(PacketType sendType, string key, SerializationData.LockType lockType, SendData send)
+                void onSend(PacketType sendType, string key, EncryptAndCompress.LockType lockType, SendData send)
                 {
                     using (Packet packet = new Packet(client))
                     {
@@ -207,7 +207,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Send RSA key
-                onSend(PacketType.RSAKEY, "", SerializationData.LockType.None, new SendData(0, RSAkey.PublicKeyBytes));
+                onSend(PacketType.RSAKEY, "", EncryptAndCompress.LockType.None, new SendData(0, RSAkey.PublicKeyBytes));
                 #endregion
 
                 #region Get AES key
@@ -219,7 +219,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Send AES Check
-                onSend(PacketType.AESKEY, AESkey, SerializationData.LockType.AES, new SendData(0, "Connect check"));
+                onSend(PacketType.AESKEY, AESkey, EncryptAndCompress.LockType.AES, new SendData(0, "Connect check"));
                 #endregion
 
                 #region Get CONNECT_SUCCESSFUL
@@ -229,7 +229,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region On CONNECT
-                //onSend(PacketType.CONNECT_SUCCESSFUL, AESkey, SerializationData.LockType.AES, new SendData(0, "On Connect"));
+                //onSend(PacketType.CONNECT_SUCCESSFUL, AESkey, EncryptAndCompress.LockType.AES, new SendData(0, "On Connect"));
                 PushPacket(PacketType.CONNECT_SUCCESSFUL, AESkey, client);
 
                 lock (OnListenClient)
@@ -254,7 +254,7 @@ namespace JimmikerNetwork
             using (Packet newpacket = new Packet(packet.peer))
             {
                 packet.BeginWrite(PacketType.CONNECT_SUCCESSFUL);
-                packet.WriteSendData(new SendData(0, "On Connect"), (string)packet.state, SerializationData.LockType.AES);
+                packet.WriteSendData(new SendData(0, "On Connect"), (string)packet.state, EncryptAndCompress.LockType.AES);
                 Send(packet, packet.peer);
             }
         }
@@ -406,7 +406,7 @@ namespace JimmikerNetwork
                                     using (Packet sendpacket = new Packet(peer.socket))
                                     {
                                         sendpacket.BeginWrite(PacketType.P2P_SERVER_CALL);
-                                        sendpacket.WriteSendData(sendData, SocketToKey[TraceRoute.IPEndPointParse(remoteendpoint, AddressFamily.InterNetworkV6)], SerializationData.LockType.AES);
+                                        sendpacket.WriteSendData(sendData, SocketToKey[TraceRoute.IPEndPointParse(remoteendpoint, AddressFamily.InterNetworkV6)], EncryptAndCompress.LockType.AES);
                                         Send(sendpacket, peer.socket);
                                     }
                                     //DebugMessage(((Client.P2PCode)sendData.Code).ToString() + ":" + packet.peer.ToString() + " to " + remoteendpoint.ToString());
@@ -417,7 +417,7 @@ namespace JimmikerNetwork
                                     using (Packet sendpacket = new Packet(packet.peer))
                                     {
                                         sendpacket.BeginWrite(PacketType.P2P_SERVER_FAILED);
-                                        sendpacket.WriteSendData(sendData, SocketToKey[packet.peer], SerializationData.LockType.AES);
+                                        sendpacket.WriteSendData(sendData, SocketToKey[packet.peer], EncryptAndCompress.LockType.AES);
                                         Send(sendpacket, packet.peer);
                                     }
                                 }
@@ -430,7 +430,7 @@ namespace JimmikerNetwork
                             using (Packet sendpacket = new Packet(packet.peer))
                             {
                                 sendpacket.BeginWrite(PacketType.P2P_GET_PUBLIC_ENDPOINT);
-                                sendpacket.WriteSendData(new SendData(0, packet.peer.ToString()), "", SerializationData.LockType.None);
+                                sendpacket.WriteSendData(new SendData(0, packet.peer.ToString()), "", EncryptAndCompress.LockType.None);
                                 Send(sendpacket, packet.peer);
                             }
                             packet.CloseStream();
@@ -504,7 +504,7 @@ namespace JimmikerNetwork
 
                 GetMessage = null;
 
-                RSAkey = new SerializationData.RSAKeyPair();
+                RSAkey = new EncryptAndCompress.RSAKeyPair();
             }
         }
 

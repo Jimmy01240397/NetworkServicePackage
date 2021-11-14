@@ -44,7 +44,7 @@ namespace JimmikerNetwork.Server
             using (Packet packet = new Packet(socket))
             {
                 packet.BeginWrite(PacketType.ServerTell);
-                packet.WriteSendData(new SendData(Code, Parameter), Key, _Lock ? SerializationData.LockType.AES : SerializationData.LockType.None);
+                packet.WriteSendData(new SendData(Code, Parameter), Key, _Lock ? EncryptAndCompress.LockType.AES : EncryptAndCompress.LockType.None);
                 server.Send(packet, socket);
             }
         }
@@ -54,7 +54,7 @@ namespace JimmikerNetwork.Server
             using (Packet packet = new Packet(socket))
             {
                 packet.BeginWrite(PacketType.Response);
-                packet.WriteSendData(new SendData(Code, Parameter, ReturnCode, DebugMessage), Key, _Lock ? SerializationData.LockType.AES : SerializationData.LockType.None);
+                packet.WriteSendData(new SendData(Code, Parameter, ReturnCode, DebugMessage), Key, _Lock ? EncryptAndCompress.LockType.AES : EncryptAndCompress.LockType.None);
                 server.Send(packet, socket);
             }
         }

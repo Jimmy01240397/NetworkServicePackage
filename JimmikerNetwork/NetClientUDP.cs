@@ -18,11 +18,11 @@ namespace JimmikerNetwork
 
         public bool EnableP2P { get; set; } = false;
 
-        public SerializationData.RSAKeyPair RSAkey { get; private set; }
+        public EncryptAndCompress.RSAKeyPair RSAkey { get; private set; }
 
         public string AESkey { get; private set; }
 
-        public SerializationData.RSAKeyPair P2PRSAkey { get; private set; }
+        public EncryptAndCompress.RSAKeyPair P2PRSAkey { get; private set; }
 
         public Dictionary<object, string> P2PSocketToKey { get; private set; }
 
@@ -237,7 +237,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Set Send func
-                void onSend(PacketType sendType, string key, SerializationData.LockType lockType, SendData send)
+                void onSend(PacketType sendType, string key, EncryptAndCompress.LockType lockType, SendData send)
                 {
                     using (Packet packet = new Packet(RemoteEndPoint))
                     {
@@ -255,12 +255,12 @@ namespace JimmikerNetwork
                 if (msgid != PacketType.RSAKEY)
                     return;
 
-                RSAkey = new SerializationData.RSAKeyPair((byte[])sendData.Parameters);
+                RSAkey = new EncryptAndCompress.RSAKeyPair((byte[])sendData.Parameters);
                 #endregion
 
                 #region Generate And Send AES Key
-                AESkey = SerializationData.GenerateAESKey();
-                onSend(PacketType.AESKEY, RSAkey.PublicKey, SerializationData.LockType.RSA, new SendData(0, AESkey));
+                AESkey = EncryptAndCompress.GenerateAESKey();
+                onSend(PacketType.AESKEY, RSAkey.PublicKey, EncryptAndCompress.LockType.RSA, new SendData(0, AESkey));
                 #endregion
 
                 #region Check AES Key
@@ -270,7 +270,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Send CONNECT_SUCCESSFUL
-                onSend(PacketType.CONNECT_SUCCESSFUL, AESkey, SerializationData.LockType.AES, new SendData(0, "Connect successful"));
+                onSend(PacketType.CONNECT_SUCCESSFUL, AESkey, EncryptAndCompress.LockType.AES, new SendData(0, "Connect successful"));
                 #endregion
 
                 #region On CONNECT
@@ -278,7 +278,7 @@ namespace JimmikerNetwork
                 if (sendData == new SendData())
                     return;
 
-                P2PRSAkey = SerializationData.GenerateRSAKeys(2048);
+                P2PRSAkey = EncryptAndCompress.GenerateRSAKeys(2048);
 
                 PushPacket(PacketType.CONNECT_SUCCESSFUL, "");
 
@@ -345,7 +345,7 @@ namespace JimmikerNetwork
 
                 OnStop();
                 AESkey = null;
-                RSAkey = new SerializationData.RSAKeyPair();
+                RSAkey = new EncryptAndCompress.RSAKeyPair();
             }
         }
         #endregion
@@ -357,7 +357,7 @@ namespace JimmikerNetwork
             {
                 packet.BeginWrite(PacketType.P2P_SERVER_CALL);
                 SendData sendData = new SendData((byte)code, new object[] { PeerRemoteEndPoint.ToString(), LocalPublicEndPoint == null ? null : LocalPublicEndPoint.ToString(), data });
-                packet.WriteSendData(sendData, AESkey, SerializationData.LockType.AES);
+                packet.WriteSendData(sendData, AESkey, EncryptAndCompress.LockType.AES);
                 Send(packet);
             }
         }
@@ -802,7 +802,7 @@ namespace JimmikerNetwork
                 #endregion
 
                 #region Set Send func
-                void onSend(PacketType sendType, IPEndPoint endPoint, string key, SerializationData.LockType lockType, SendData send, bool NAT = false)
+                void onSend(PacketType sendType, IPEndPoint endPoint, string key, EncryptAndCompress.LockType lockType, SendData send, bool NAT = false)
                 {
                     using (Packet packet = new Packet(endPoint))
                     {
@@ -831,7 +831,7 @@ namespace JimmikerNetwork
                             {
                                 case P2PCode.CallConnectComplete:
                                     {
-                                        onSend(PacketType.P2P_CONNECTION, client, "", SerializationData.LockType.None, new SendData(0, LocalPublicEndPoint.ToString()));
+                                        onSend(PacketType.P2P_CONNECTION, client, "", EncryptAndCompress.LockType.None, new SendData(0, LocalPublicEndPoint.ToString()));
 
                                         #region Get RSA key
                                         sendData = onRead(PacketType.RSAKEY, "", (a) => true, (data) => 
@@ -846,12 +846,12 @@ namespace JimmikerNetwork
                                         if (sendData == new SendData())
                                             return;
 
-                                        SerializationData.RSAKeyPair P2PKey = new SerializationData.RSAKeyPair((byte[])sendData.Parameters);
+                                        EncryptAndCompress.RSAKeyPair P2PKey = new EncryptAndCompress.RSAKeyPair((byte[])sendData.Parameters);
                                         #endregion
 
                                         #region Send AES key
-                                        string P2PAESkey = SerializationData.GenerateAESKey();
-                                        onSend(PacketType.AESKEY, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, P2PAESkey));
+                                        string P2PAESkey = EncryptAndCompress.GenerateAESKey();
+                                        onSend(PacketType.AESKEY, client, P2PKey.PublicKey, EncryptAndCompress.LockType.RSA, new SendData(0, P2PAESkey));
                                         #endregion
 
                                         #region Check AES Key
@@ -879,7 +879,7 @@ namespace JimmikerNetwork
                                         #endregion
 
                                         #region Send CONNECT_SUCCESSFUL
-                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "Connect successful"));
+                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, EncryptAndCompress.LockType.AES, new SendData(0, "Connect successful"));
                                         #endregion
 
                                         #region On CONNECT
@@ -951,12 +951,12 @@ namespace JimmikerNetwork
                                         if (sendData == new SendData())
                                             return;
 
-                                        SerializationData.RSAKeyPair P2PKey = new SerializationData.RSAKeyPair((byte[])sendData.Parameters);
+                                        EncryptAndCompress.RSAKeyPair P2PKey = new EncryptAndCompress.RSAKeyPair((byte[])sendData.Parameters);
                                         #endregion
 
                                         #region Send AES key
-                                        string P2PAESkey = SerializationData.GenerateAESKey();
-                                        onSend(PacketType.AESKEY, client, P2PKey.PublicKey, SerializationData.LockType.RSA, new SendData(0, P2PAESkey), true);
+                                        string P2PAESkey = EncryptAndCompress.GenerateAESKey();
+                                        onSend(PacketType.AESKEY, client, P2PKey.PublicKey, EncryptAndCompress.LockType.RSA, new SendData(0, P2PAESkey), true);
                                         #endregion
 
                                         #region Check RSA Key
@@ -980,7 +980,7 @@ namespace JimmikerNetwork
                                         #endregion
 
                                         #region Send CONNECT_SUCCESSFUL
-                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "Connect successful"), true);
+                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, EncryptAndCompress.LockType.AES, new SendData(0, "Connect successful"), true);
                                         #endregion
 
                                         #region On CONNECT
@@ -1027,7 +1027,7 @@ namespace JimmikerNetwork
                                     {
 
                                         #region Send RSA key
-                                        onSend(PacketType.RSAKEY, client, "", SerializationData.LockType.None, new SendData(0, P2PRSAkey.PublicKeyBytes), true);
+                                        onSend(PacketType.RSAKEY, client, "", EncryptAndCompress.LockType.None, new SendData(0, P2PRSAkey.PublicKeyBytes), true);
                                         #endregion
 
                                         #region Get AES key
@@ -1052,7 +1052,7 @@ namespace JimmikerNetwork
                                         #endregion
 
                                         #region Send RSA Check
-                                        onSend(PacketType.AESKEY, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "Connect check"), true);
+                                        onSend(PacketType.AESKEY, client, P2PAESkey, EncryptAndCompress.LockType.AES, new SendData(0, "Connect check"), true);
                                         #endregion
 
                                         #region Get CONNECT_SUCCESSFUL
@@ -1076,7 +1076,7 @@ namespace JimmikerNetwork
                                         #endregion
 
                                         #region On CONNECT
-                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "On Connect"), true);
+                                        onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, EncryptAndCompress.LockType.AES, new SendData(0, "On Connect"), true);
                                         P2PPushPacket(PacketType.P2P_CONNECT_SUCCESSFUL, P2PAESkey, client, client, true);
 
                                         lock (OnListenP2PClient)
@@ -1108,7 +1108,7 @@ namespace JimmikerNetwork
                     case PacketType.P2P_CONNECTION:
                         {
                             #region Send RSA key
-                            onSend(PacketType.RSAKEY, client, "", SerializationData.LockType.None, new SendData(0, P2PRSAkey.PublicKeyBytes));
+                            onSend(PacketType.RSAKEY, client, "", EncryptAndCompress.LockType.None, new SendData(0, P2PRSAkey.PublicKeyBytes));
                             #endregion
 
                             #region Get AES key
@@ -1137,7 +1137,7 @@ namespace JimmikerNetwork
                             #endregion
 
                             #region Send AES Check
-                            onSend(PacketType.AESKEY, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "Connect check"));
+                            onSend(PacketType.AESKEY, client, P2PAESkey, EncryptAndCompress.LockType.AES, new SendData(0, "Connect check"));
                             #endregion
 
                             #region Get CONNECT_SUCCESSFUL
@@ -1165,7 +1165,7 @@ namespace JimmikerNetwork
                             #endregion
 
                             #region On CONNECT
-                            onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, SerializationData.LockType.AES, new SendData(0, "On Connect"));
+                            onSend(PacketType.P2P_CONNECT_SUCCESSFUL, client, P2PAESkey, EncryptAndCompress.LockType.AES, new SendData(0, "On Connect"));
 
                             IPEndPoint therealip = (IPEndPoint)P2PToRealEndPoint[client];
 
@@ -1457,7 +1457,7 @@ namespace JimmikerNetwork
                                                 using (Packet sendpacket = new Packet(TraceRoute.IPEndPointParse(TraceRoute.IPEndPointParse(ip, AddressFamily.InterNetworkV6).Address.ToString() + ":" + port, AddressFamily.InterNetworkV6)))
                                                 {
                                                     sendpacket.BeginWrite(PacketType.P2P_CHECKING);
-                                                    sendpacket.WriteSendData(new SendData(0, ip), "", SerializationData.LockType.None);
+                                                    sendpacket.WriteSendData(new SendData(0, ip), "", EncryptAndCompress.LockType.None);
                                                     Send(sendpacket);
                                                 }
                                             }
@@ -1481,7 +1481,7 @@ namespace JimmikerNetwork
 
                                             Packet apacket = new Packet(ip);
                                             apacket.BeginWrite(msgid);
-                                            apacket.WriteSendData(new SendData(sendData.Code, Parameters[Data]), "", SerializationData.LockType.None);
+                                            apacket.WriteSendData(new SendData(sendData.Code, Parameters[Data]), "", EncryptAndCompress.LockType.None);
                                             apacket.CloseWrite();
                                             apacket.ResetPosition();
 
@@ -1497,7 +1497,7 @@ namespace JimmikerNetwork
                                         {
                                             Packet apacket = new Packet(remote);
                                             apacket.BeginWrite(msgid);
-                                            apacket.WriteSendData(new SendData(sendData.Code, Parameters[Data]), "", SerializationData.LockType.None);
+                                            apacket.WriteSendData(new SendData(sendData.Code, Parameters[Data]), "", EncryptAndCompress.LockType.None);
                                             apacket.CloseWrite();
                                             apacket.ResetPosition();
 
@@ -1508,7 +1508,7 @@ namespace JimmikerNetwork
                                         {
                                             Packet apacket = new Packet(remote);
                                             apacket.BeginWrite(msgid);
-                                            apacket.WriteSendData(new SendData(sendData.Code, Parameters[Data]), "", SerializationData.LockType.None);
+                                            apacket.WriteSendData(new SendData(sendData.Code, Parameters[Data]), "", EncryptAndCompress.LockType.None);
                                             apacket.CloseWrite();
                                             apacket.ResetPosition();
 

@@ -14,7 +14,7 @@ namespace JimmikerNetwork
 
         ProtocolType type { get; }
 
-        SerializationData.RSAKeyPair RSAkey { get; }
+        EncryptAndCompress.RSAKeyPair RSAkey { get; }
         List<PeerBase> SocketList { get; }
         List<Packet> Packets { get; }
         Dictionary<EndPoint, PeerBase> ToPeer { get; }
