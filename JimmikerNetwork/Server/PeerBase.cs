@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -11,6 +12,21 @@ namespace JimmikerNetwork.Server
         private INetServer server;
 
         public object socket { get; private set; }
+
+        public EndPoint RemoteEndPoint
+        {
+            get
+            {
+                if(socket.GetType() == typeof(Socket))
+                {
+                    return ((Socket)socket).RemoteEndPoint;
+                }
+                else
+                {
+                    return (EndPoint)socket;
+                }
+            }
+        }
 
         protected string Key
         {
