@@ -1,0 +1,14 @@
+C:\Users\user\source\repos\TestNet\TestNet\obj\Debug\TestNet.csprojAssemblyReference.cache
+C:\Users\user\source\repos\TestNet\TestNet\obj\Debug\TestNet.csproj.CoreCompileInputs.cache
+C:\Users\user\source\repos\TestNet\TestNet\bin\Debug\TestNet.exe.config
+C:\Users\user\source\repos\TestNet\TestNet\bin\Debug\TestNet.exe
+C:\Users\user\source\repos\TestNet\TestNet\bin\Debug\TestNet.pdb
+C:\Users\user\source\repos\TestNet\TestNet\bin\Debug\JimmikerNetwork.dll
+C:\Users\user\source\repos\TestNet\TestNet\bin\Debug\JimmikerNetwork.pdb
+C:\Users\user\source\repos\TestNet\TestNet\obj\Debug\TestNet.csproj.CopyComplete
+C:\Users\user\source\repos\TestNet\TestNet\obj\Debug\TestNet.exe
+C:\Users\user\source\repos\TestNet\TestNet\obj\Debug\TestNet.pdb
+C:\Users\user\source\repos\TestNet\TestNet\bin\Debug\JimmikerNetwork.xml
+C:\Users\user\source\repos\TestNet\TestNet\bin\Debug\System.Net.Http.dll
+C:\Users\user\source\repos\TestNet\TestNet\bin\Debug\System.Net.Http.xml
+C:\Users\user\source\repos\TestNet\TestNet\bin\Debug\zh-Hant\System.Net.Http.resources.dll
