@@ -2,11 +2,16 @@
 
 A Network Service Package for C#. It have tcp, udp, p2p mode. You can use this to make your own game service, chat service, file service... 
 
+* [Installation](https://github.com/Jimmy01240397/NetworkServicePackage#installation)
+* [Overview](https://github.com/Jimmy01240397/NetworkServicePackage#overview)
+* [Usage](https://github.com/Jimmy01240397/NetworkServicePackage#usage)
+* [Example](https://github.com/Jimmy01240397/NetworkServicePackage#example)
+
 ## Installation
 
 Import JimmikerNetwork.dll in your C# project and put JimmikerNetwork.xml that you can see a summary.
 
-## Usage
+## Overview
 
 In the project the following class are available to you:
 
@@ -36,13 +41,14 @@ In the project the following class are available to you:
 | ClientLinker   | a client connect controller                         |
 | PeerForP2PBase | a abstract class unit for your P2P peer. Inherit it when you use it |
 
-## Server
-### Using Namespace
+## Usage
+### Server
+#### Using Namespace
 ``` C#
 using JimmikerNetwork;
 using JimmikerNetwork.Server;
 ```
-### Inheritance AppllicationBase
+#### Inheritance AppllicationBase
 ``` C#
 public class Appllication : AppllicationBase
 {
@@ -75,7 +81,7 @@ public class Appllication : AppllicationBase
 }
 ```
 
-### Inheritance PeerBase
+#### Inheritance PeerBase
 ``` C#
 public class Peer : PeerBase
 {
@@ -108,33 +114,33 @@ public class Peer : PeerBase
 }
 ```
 
-### Peer sent Response and Event
+#### Peer sent Response and Event
 ``` C#
 peer.Reply(0, new object[]{ 100, "This is Response message 1" }, 0, "Debug Message");
 peer.Reply(1, "This is Response message 2", 0, "Debug Message");
 peer.Tell(0, new object[]{ 100, "This is Event message" });
 ```
 
-### Start Service
+#### Start Service
 ``` C#
 Appllication appllication = new Appllication(<local ip>, <local port>, System.Net.Sockets.ProtocolType.<Tcp or Udp>);
 appllication.Start();
 ```
 
-### Stop Service
+#### Stop Service
 ``` C#
 appllication.Disconnect();
 appllication.StopUpdateThread();
 ```
 
-## Client
-### Using Namespace
+### Client
+#### Using Namespace
 ``` C#
 using JimmikerNetwork;
 using JimmikerNetwork.Client;
 ```
 
-### Inheritance ClientListen and Initialize ClientLinker
+#### Inheritance ClientListen and Initialize ClientLinker
 ``` C#
 public class Client : ClientListen
 {
@@ -189,7 +195,7 @@ public class Client : ClientListen
 }
 ```
 
-### Write a connect function in Client class
+#### Write a connect function in Client class
 ``` C#
 public class Client : ClientListen
 {
@@ -208,26 +214,26 @@ public class Client : ClientListen
 }
 ```
 
-### Client sent Request
+#### Client sent Request
 ``` C#
 client.clientLinker.Ask(0, new object[]{ 100, "This is Request message 1" });
 client.clientLinker.Ask(1, "This is Response message 2");
 ```
 
-### Start Client
+#### Start Client
 ``` C#
 Client client = new Client(System.Net.Sockets.ProtocolType.<Tcp or Udp>);
 client.Connect(<remote host>, <remote port>);
 ```
 
-### Stop Client
+#### Stop Client
 ``` C#
 client.clientLinker.Disconnect();
 client.clientLinker.StopUpdateThread();
 ```
 
-## P2P
-### Client Allow P2P mode
+### P2P
+#### Client Allow P2P mode
 ``` C#
 client.clientLinker.EnableP2P = true;
 //or                                                         EnableP2P
@@ -235,7 +241,7 @@ client.clientLinker.EnableP2P = true;
 ClientLinker clientLinker = new ClientLinker(this, protocol, true);
 ```
 
-### Client Inheritance PeerForP2PBase
+#### Client Inheritance PeerForP2PBase
 ``` C#
 public class Peer : PeerForP2PBase
 {
@@ -268,7 +274,7 @@ public class Peer : PeerForP2PBase
 }
 ```
 
-### Set P2PAddPeer
+#### Set P2PAddPeer
 ``` C#
 public class Client : ClientListen
 {
@@ -286,7 +292,7 @@ public class Client : ClientListen
 }
 ```
 
-### Start P2P Connect
+#### Start P2P Connect
 ``` C#
 client.clientLinker.StartP2PConnect(<peer ipendpoint>, (remote, publicremote, peer, success) =>
 {
@@ -294,13 +300,13 @@ client.clientLinker.StartP2PConnect(<peer ipendpoint>, (remote, publicremote, pe
 });
 ```
 
-### P2P sent data
+#### P2P sent data
 ``` C#
 peer.Tell(0, new object[]{ 100, "This is Data message 1" });
 peer.Tell(1, "This is Data message 2");
 ```
 
-### Disconnect P2P Peer
+#### Disconnect P2P Peer
 ``` C#
 peer.Close();
 ```
