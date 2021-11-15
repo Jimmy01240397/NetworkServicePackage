@@ -2,10 +2,10 @@
 
 A Network Service Package for C#. It have tcp, udp, p2p mode. You can use this to make your own game service, chat service, file service... 
 
-* [Installation](https://github.com/Jimmy01240397/NetworkServicePackage#installation)
-* [Overview](https://github.com/Jimmy01240397/NetworkServicePackage#overview)
-* [Usage](https://github.com/Jimmy01240397/NetworkServicePackage#usage)
-* [Example](https://github.com/Jimmy01240397/NetworkServicePackage#example)
+* [Installation](#installation)
+* [Overview](#overview)
+* [Usage](#usage)
+* [Example](#example)
 
 ## Installation
 
