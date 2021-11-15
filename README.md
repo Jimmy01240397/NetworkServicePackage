@@ -5,6 +5,9 @@ A Network Service Package for C#. It have tcp, udp, p2p mode. You can use this t
 * [Installation](#installation)
 * [Overview](#overview)
 * [Usage](#usage)
+  * [Server](#server-1)
+  * [Client](#client-1)
+  * [P2P](#p2p)
 * [Example](#example)
 
 ## Installation
