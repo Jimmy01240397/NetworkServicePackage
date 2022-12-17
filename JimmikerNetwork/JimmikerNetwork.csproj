@@ -36,8 +36,9 @@
     <DocumentationFile>bin\Release\JimmikerNetwork.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Chuon">
-      <HintPath>..\Chuon\ChuonCS\Chuon\bin\Release\Chuon.dll</HintPath>
+    <Reference Include="Chuon, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Chuon\Chuon.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
