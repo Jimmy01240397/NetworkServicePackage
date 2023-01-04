@@ -65,12 +65,12 @@ namespace JimmikerNetwork.Server
             }
         }
 
-        public virtual void Reply(byte Code, object Parameter, short ReturnCode, string DebugMessage, bool _Lock = true)
+        public virtual void Reply(SendData RequestData, byte Code, object Parameter, short ReturnCode, string DebugMessage, bool _Lock = true)
         {
             using (Packet packet = new Packet(socket))
             {
                 packet.BeginWrite(PacketType.Response);
-                packet.WriteSendData(new SendData(Code, Parameter, ReturnCode, DebugMessage), Key, _Lock ? EncryptAndCompress.LockType.AES : EncryptAndCompress.LockType.None);
+                packet.WriteSendData(new SendData(RequestData.ID, Code, Parameter, ReturnCode, DebugMessage), Key, _Lock ? EncryptAndCompress.LockType.AES : EncryptAndCompress.LockType.None);
                 server.Send(packet, socket);
             }
         }

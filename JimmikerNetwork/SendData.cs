@@ -9,10 +9,14 @@ namespace JimmikerNetwork
 {
     public struct SendData
     {
+
+        public string ID;
+
         /// <summary>
         /// Your commant code.
         /// </summary>
         public byte Code;
+
         /// <summary>
         /// Your primary data want to send.
         /// </summary>
@@ -37,20 +41,25 @@ namespace JimmikerNetwork
                 {
                     case 0:
                         {
-                            data = Code;
+                            data = ID;
                             break;
                         }
                     case 1:
                         {
-                            data = Parameters;
+                            data = Code;
                             break;
                         }
                     case 2:
                         {
-                            data = ReturnCode;
+                            data = Parameters;
                             break;
                         }
                     case 3:
+                        {
+                            data = ReturnCode;
+                            break;
+                        }
+                    case 4:
                         {
                             data = DebugMessage;
                             break;
@@ -68,20 +77,26 @@ namespace JimmikerNetwork
                 {
                     case 0:
                         {
-                            Code = (byte)value;
+                            if (value == null) ID = null;
+                            else ID = StringTool.BytesToHex(StringTool.HexToBytes((string)value));
                             break;
                         }
                     case 1:
                         {
-                            Parameters = (Dictionary<byte, object>)value;
+                            Code = (byte)value;
                             break;
                         }
                     case 2:
                         {
-                            ReturnCode = (short)value;
+                            Parameters = (Dictionary<byte, object>)value;
                             break;
                         }
                     case 3:
+                        {
+                            ReturnCode = (short)value;
+                            break;
+                        }
+                    case 4:
                         {
                             DebugMessage = (string)value;
                             break;
@@ -97,6 +112,7 @@ namespace JimmikerNetwork
         #region 建構子
         public SendData(byte[] bytes, int index, out int cont, string key)
         {
+            this.ID = null;
             this.Code = 0;
             this.Parameters = null;
             this.ReturnCode = 0;
@@ -104,16 +120,37 @@ namespace JimmikerNetwork
             ByteToAll(bytes, index, out cont, key);
         }
 
-        public SendData(byte Code, object Parameters, short ReturnCode, string DebugMessage)
+        public SendData(string ID, byte Code, object Parameters, short ReturnCode, string DebugMessage)
         {
+            if (ID == null) this.ID = null;
+            else this.ID = StringTool.BytesToHex(StringTool.HexToBytes(ID));
             this.Code = Code;
             this.Parameters = Parameters;
             this.ReturnCode = ReturnCode;
             this.DebugMessage = DebugMessage;
         }
 
+        public SendData(byte Code, object Parameters, short ReturnCode, string DebugMessage)
+        {
+            this.ID = null;
+            this.Code = Code;
+            this.Parameters = Parameters;
+            this.ReturnCode = ReturnCode;
+            this.DebugMessage = DebugMessage;
+        }
+
+        public SendData(string ID, byte Code, object Parameters)
+        {
+            if (ID == null) this.ID = null;
+            else this.ID = StringTool.BytesToHex(StringTool.HexToBytes(ID));
+            this.Code = Code;
+            this.Parameters = Parameters;
+            this.ReturnCode = 0;
+            this.DebugMessage = "";
+        }
         public SendData(byte Code, object Parameters)
         {
+            this.ID = null;
             this.Code = Code;
             this.Parameters = Parameters;
             this.ReturnCode = 0;
@@ -122,6 +159,7 @@ namespace JimmikerNetwork
 
         public SendData(string DebugMessage)
         {
+            this.ID = null;
             this.Code = 0;
             this.Parameters = null;
             this.ReturnCode = 0;
@@ -137,7 +175,7 @@ namespace JimmikerNetwork
         /// <returns>binary</returns>
         public byte[] AllToByte(string key, EncryptAndCompress.LockType _Lock = EncryptAndCompress.LockType.None)
         {
-            object[] datas = new object[] { Code, Parameters, ReturnCode, DebugMessage };
+            object[] datas = new object[] { string.IsNullOrEmpty(ID) ? null : StringTool.HexToBytes(ID), Code, Parameters, ReturnCode, DebugMessage };
             return EncryptAndCompress.Lock(new ChuonBinary(datas).ToArray(), key, _Lock);
         }
 
@@ -160,10 +198,11 @@ namespace JimmikerNetwork
             try
             {
                 object[] datas = (object[])new ChuonBinary(bytes).ToObject();
-                Code = (byte)datas[0];
-                Parameters = datas[1];
-                ReturnCode = (short)datas[2];
-                DebugMessage = (string)datas[3];
+                ID = datas[0] != null ? StringTool.BytesToHex((byte[])datas[0]) : null;
+                Code = (byte)datas[1];
+                Parameters = datas[2];
+                ReturnCode = (short)datas[3];
+                DebugMessage = (string)datas[4];
             }
             catch (System.Exception e)
             {
@@ -174,6 +213,7 @@ namespace JimmikerNetwork
 
         public void CopyIn(SendData read)
         {
+            ID = read.ID;
             Code = read.Code;
             Parameters = read.Parameters;
             ReturnCode = read.ReturnCode;
@@ -182,7 +222,7 @@ namespace JimmikerNetwork
 
         public bool Equals(SendData a)
         {
-            return Code == a.Code && Parameters == a.Parameters && ReturnCode == a.ReturnCode && DebugMessage == a.DebugMessage;
+            return ID == a.ID && Code == a.Code && Parameters == a.Parameters && ReturnCode == a.ReturnCode && DebugMessage == a.DebugMessage;
         }
 
         public override bool Equals(object obj)
@@ -195,7 +235,7 @@ namespace JimmikerNetwork
 
         public static bool Equals(SendData a, SendData b)
         {
-            return a.Code == b.Code && a.Parameters == b.Parameters && a.ReturnCode == b.ReturnCode && a.DebugMessage == b.DebugMessage;
+            return a.ID == b.ID && a.Code == b.Code && a.Parameters == b.Parameters && a.ReturnCode == b.ReturnCode && a.DebugMessage == b.DebugMessage;
         }
 
         public static bool operator ==(SendData a, SendData b)

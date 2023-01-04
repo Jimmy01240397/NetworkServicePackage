@@ -5,6 +5,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.Threading;
 using System.Net;
+using System.Diagnostics;
 
 namespace JimmikerNetwork.Client
 {
@@ -15,6 +16,8 @@ namespace JimmikerNetwork.Client
 
         INetClient client;
         ClientListen listener;
+
+        Dictionary<string, (Action<SendData>, Stopwatch, int)> AskCallbacks;
 
         public LinkCobe linkstate { get; private set; } = LinkCobe.None;
 
@@ -59,6 +62,7 @@ namespace JimmikerNetwork.Client
         {
             listener = listen;
             type = protocolType;
+            AskCallbacks = new Dictionary<string, (Action<SendData>, Stopwatch, int)>();
             switch (type)
             {
                 case ProtocolType.Tcp:
@@ -179,17 +183,34 @@ namespace JimmikerNetwork.Client
             client.PushPacket(PacketType.CONNECTION_LOST, "主動斷線");
         }
 
-        public virtual void Ask(byte Code, object Parameter, bool _Lock = true)
+        public virtual void Ask(byte Code, object Parameter, Action<SendData> callback, int callbacktimeout, bool Lock = true)
         {
             if (linkstate == LinkCobe.Connect)
             {
                 using (Packet packet = new Packet(client.RemoteEndPoint))
                 {
+                    string ID = null;
+                    if(callback != null)
+                    {
+                        ID = Guid.NewGuid().ToString().Replace("-", "");
+                        Stopwatch stopwatch = new Stopwatch();
+                        if(callbacktimeout > 0) stopwatch.Start();
+                        lock (AskCallbacks)
+                        {
+                            AskCallbacks.Add(ID, (callback, stopwatch, callbacktimeout));
+                        }
+                    }
+
                     packet.BeginWrite(PacketType.Request);
-                    packet.WriteSendData(new SendData(Code, Parameter), Key, _Lock ? EncryptAndCompress.LockType.AES : EncryptAndCompress.LockType.None);
+                    packet.WriteSendData(new SendData(ID, Code, Parameter), Key, Lock ? EncryptAndCompress.LockType.AES : EncryptAndCompress.LockType.None);
                     client.Send(packet);
                 }
             }
+        }
+
+        public virtual void Ask(byte Code, object Parameter, bool Lock = true)
+        {
+            Ask(Code, Parameter, null, 0, Lock);
         }
 
         public virtual void SendDebugMessageToServer(string message)
@@ -274,6 +295,16 @@ namespace JimmikerNetwork.Client
                                     if (!string.IsNullOrEmpty(Key))
                                     {
                                         SendData sendData = packet.ReadSendData(Key);
+                                        lock (AskCallbacks)
+                                        {
+                                            if (!string.IsNullOrEmpty(sendData.ID) && AskCallbacks.ContainsKey(sendData.ID))
+                                            {
+                                                var callback = AskCallbacks[sendData.ID];
+                                                callback.Item2.Stop();
+                                                AskCallbacks.Remove(sendData.ID);
+                                                callback.Item1?.Invoke(sendData);
+                                            }
+                                        }
                                         listener.OnOperationResponse(sendData);
                                     }
                                     break;
@@ -312,6 +343,18 @@ namespace JimmikerNetwork.Client
                         }
                     }
                     packet.CloseStream();
+                }
+                lock (AskCallbacks)
+                {
+                    List<KeyValuePair<string, (Action<SendData>, Stopwatch, int)>> callbacklist = new List<KeyValuePair<string, (Action<SendData>, Stopwatch, int)>>(AskCallbacks);
+                    foreach (var askcallback in callbacklist)
+                    {
+                        if (askcallback.Value.Item3 > 0 && askcallback.Value.Item2.ElapsedMilliseconds > askcallback.Value.Item3)
+                        {
+                            askcallback.Value.Item2.Stop();
+                            AskCallbacks.Remove(askcallback.Key);
+                        }
+                    }
                 }
             }
         }
