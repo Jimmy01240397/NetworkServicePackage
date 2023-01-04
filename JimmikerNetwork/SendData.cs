@@ -198,7 +198,7 @@ namespace JimmikerNetwork
             try
             {
                 object[] datas = (object[])new ChuonBinary(bytes).ToObject();
-                ID = datas[0] != null ? StringTool.BytesToHex((byte[])datas[0]) : null;
+                ID = datas[0] != null ? StringTool.BytesToHex((byte[])datas[0]).ToLower() : null;
                 Code = (byte)datas[1];
                 Parameters = datas[2];
                 ReturnCode = (short)datas[3];

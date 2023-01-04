@@ -192,7 +192,7 @@ namespace JimmikerNetwork.Client
                     string ID = null;
                     if(callback != null)
                     {
-                        ID = Guid.NewGuid().ToString().Replace("-", "");
+                        ID = Guid.NewGuid().ToString().Replace("-", "").ToLower();
                         Stopwatch stopwatch = new Stopwatch();
                         if(callbacktimeout > 0) stopwatch.Start();
                         lock (AskCallbacks)
@@ -297,11 +297,11 @@ namespace JimmikerNetwork.Client
                                         SendData sendData = packet.ReadSendData(Key);
                                         lock (AskCallbacks)
                                         {
-                                            if (!string.IsNullOrEmpty(sendData.ID) && AskCallbacks.ContainsKey(sendData.ID))
+                                            if (!string.IsNullOrEmpty(sendData.ID) && AskCallbacks.ContainsKey(sendData.ID.ToLower()))
                                             {
-                                                var callback = AskCallbacks[sendData.ID];
+                                                var callback = AskCallbacks[sendData.ID.ToLower()];
                                                 callback.Item2.Stop();
-                                                AskCallbacks.Remove(sendData.ID);
+                                                AskCallbacks.Remove(sendData.ID.ToLower());
                                                 callback.Item1?.Invoke(sendData);
                                             }
                                         }
