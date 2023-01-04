@@ -267,18 +267,18 @@ namespace JimmikerNetwork.Client
                                 }
                             case PacketType.CONNECTION_LOST:
                                 {
+                                    client.Disconnect();
                                     listener.DebugReturn(packet.state.ToString());
                                     linkstate = LinkCobe.Lost;
                                     listener.OnStatusChanged(linkstate);
-                                    client.Disconnect();
                                     break;
                                 }
                             case PacketType.CONNECTION_ATTEMPT_FAILED:
                                 {
+                                    client.Disconnect();
                                     listener.DebugReturn(packet.state.ToString());
                                     linkstate = LinkCobe.Failed;
                                     listener.OnStatusChanged(linkstate);
-                                    client.Disconnect();
                                     break;
                                 }
                             case PacketType.ServerTell:
