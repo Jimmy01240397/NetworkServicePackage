@@ -226,7 +226,7 @@ namespace JimmikerNetwork.Client
             }
         }
 
-        public void Update()
+        public virtual void Update()
         {
             if (client != null)
             {

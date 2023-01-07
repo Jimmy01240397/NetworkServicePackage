@@ -111,7 +111,7 @@ namespace JimmikerNetwork.Server
 
         }
 
-        public void Update()
+        public virtual void Update()
         {
             for (Packet packet = server.GetPacket(); packet != null; packet = server.GetPacket())
             {
